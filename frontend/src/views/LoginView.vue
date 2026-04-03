@@ -1,6 +1,6 @@
 <template>
     <div class="min-h-screen h-screen flex relative">
-        
+
         <!-- Painel esquerdo azul -->
         <div class="w-3/8 bg-blue-800 flex flex-col items-center justify-center gap-6">
             <img src="@/assets/img/fho.png" alt="Logo da FHO" class="w-24 h-24 object-contain" />
@@ -63,9 +63,6 @@
             </div>
         </div>
     </div>
-
-
-
 </template>
 
 <script setup lang="ts">
@@ -79,23 +76,43 @@ const senha = ref('')
 const carregando = ref(false)
 const erro = ref('')
 
-function fazerLogin() {
+async function fazerLogin() {
     carregando.value = true
     erro.value = ''
 
-    setTimeout(() => {
+    try {
+        const response = await fetch('http://127.0.0.1:8000/api/login/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: email.value,
+                password: senha.value
+            })
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+            erro.value = data.error || 'Email ou senha inválidos'
+            setTimeout(() => { erro.value = '' }, 3000)
+            return
+        }
+
+        localStorage.setItem('access_token', data.access)
+        localStorage.setItem('refresh_token', data.refresh)
+        localStorage.setItem('usuario', JSON.stringify(data.user))
+
+        router.push('/dashboard')
+
+    } catch (e) {
+        erro.value = 'Erro ao conectar com o servidor'
+        setTimeout(() => { erro.value = '' }, 3000)
+    } finally {
         carregando.value = false
-        erro.value = 'Email ou senha inválidos'
-
-        setTimeout(() => {
-            erro.value = ''
-        }, 3000)
-
-    }, 2000);
-    console.log(email.value, senha.value)
-    //backend
+    }
 }
-
 </script>
 
 <style></style>
