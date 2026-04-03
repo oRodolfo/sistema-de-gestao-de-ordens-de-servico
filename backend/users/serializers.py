@@ -11,7 +11,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         model = Usuario
         fields = ['id', 'nome', 'email', 'tipo']
         extra_kwargs = {
-            'senha': {'write_only': True}  # senha nunca volta na resposta
+            'senha': {'write_only': True}
         }
 
 class CriarUsuarioSerializer(serializers.ModelSerializer):
@@ -35,3 +35,7 @@ class CriarUsuarioSerializer(serializers.ModelSerializer):
             tipo=validated_data['tipo']
         )
         return usuario
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
