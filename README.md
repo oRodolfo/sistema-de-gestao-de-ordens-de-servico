@@ -203,18 +203,6 @@ O projeto segue uma arquitetura baseada em **aplicação web com API REST**, org
 
 ---
 
-# 👨‍💻 Equipe do Projeto
-
-Projeto desenvolvido pelos alunos do curso de **Sistemas de Informação – FHO**
-
-- Arthur Peixoto Lacerda (Banco de Dados)
-- Enzo Zaia Soares (Front-end)
-- Guilherme Henrique Cavarsan (Back-End)
-- Octavio Thim Dias (Engenheiro de Requisitos)
-- Rodolfo Henrique Ribeiro Zanchetta (Scrum master - Back-end)
-
----
-
 # 🔧 Instruções Técnicas do Front-end
 
 Essas instruções são baseadas na estrutura Vue 3 + Vite.
@@ -226,3 +214,16 @@ Essas instruções são baseadas na estrutura Vue 3 + Vite.
 Instalar dependências:
 ```sh
 npm install
+```
+
+---
+
+# 👨‍💻 Equipe do Projeto
+
+Projeto desenvolvido pelos alunos do curso de **Sistemas de Informação – FHO**
+
+- Arthur Peixoto Lacerda (Banco de Dados)
+- Enzo Zaia Soares (Front-end)
+- Guilherme Henrique Cavarsan (Back-End)
+- Octavio Thim Dias (Engenheiro de Software)
+- Rodolfo Henrique Ribeiro Zanchetta (Scrum master)
