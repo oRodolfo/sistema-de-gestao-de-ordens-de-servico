@@ -198,7 +198,7 @@ O projeto segue uma arquitetura baseada em **aplicação web com API REST**, org
 
 ### Ferramentas
 - Git / GitHub
-- Trello (gestão do projeto)
+- GitHub Projects (gestão do projeto)
 - Postman (testes de API)
 
 ---
