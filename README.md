@@ -227,7 +227,3 @@ Projeto desenvolvido pelos alunos do curso de **Sistemas de Informação – FHO
 - Guilherme Henrique Cavarsan (Back-End)
 - Octavio Thim Dias (Engenheiro de Software)
 - Rodolfo Henrique Ribeiro Zanchetta (Scrum master)
-
-
-
-projeto pi
