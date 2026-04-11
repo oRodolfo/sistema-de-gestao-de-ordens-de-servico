@@ -68,8 +68,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import api from '@/services/api'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 const email = ref('')
 const senha = ref('')
@@ -81,33 +84,21 @@ async function fazerLogin() {
     erro.value = ''
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/login/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                email: email.value,
-                password: senha.value
-            })
+        const resposta = await api.post('/login/', {
+            email: email.value,
+            password: senha.value
         })
 
-        const data = await response.json()
+        authStore.salvarLogin(resposta.data.access, resposta.data.user)
 
-        if (!response.ok) {
-            erro.value = data.error || 'Email ou senha inválidos'
-            setTimeout(() => { erro.value = '' }, 3000)
-            return
+        if (resposta.data.user.tipo === 'gerente'){
+            router.push('/dashboard-gerente')
+        } else {
+            router.push('/dashboard')
         }
 
-        localStorage.setItem('access_token', data.access)
-        localStorage.setItem('refresh_token', data.refresh)
-        localStorage.setItem('usuario', JSON.stringify(data.user))
-
-        router.push('/dashboard')
-
     } catch (e) {
-        erro.value = 'Erro ao conectar com o servidor'
+        erro.value = 'Email ou senha inválidos'
         setTimeout(() => { erro.value = '' }, 3000)
     } finally {
         carregando.value = false

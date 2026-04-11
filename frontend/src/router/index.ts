@@ -23,6 +23,11 @@ const router = createRouter({
       path: '/abrir-os',
       name: 'abrir-os',
       component: () => import('@/views/AbrirOsView.vue')
+    },
+    {
+      path: '/dashboard-gerente',
+      name: 'dashboard-gerente',
+      component: () => import('@/views/DashboardGerenteView.vue')
     }
   ],
 })
