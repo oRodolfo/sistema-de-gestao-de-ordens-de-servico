@@ -7,28 +7,45 @@ const router = createRouter({
     {
       path: '/',
       name: 'login',
-      component: LoginView
+      component: LoginView,
     },
     {
       path: '/cadastro',
       name: 'Cadastro',
-      component: () => import('@/views/CadastroView.vue')
+      component: () => import('@/views/CadastroView.vue'),
     },
     {
       path: '/dashboard',
       name: 'dashboard',
-      component: () => import('@/views/DashboardView.vue')
+      component: () => import('@/views/DashboardView.vue'),
     },
     {
       path: '/abrir-os',
       name: 'abrir-os',
-      component: () => import('@/views/AbrirOsView.vue')
+      component: () => import('@/views/AbrirOsView.vue'),
     },
     {
       path: '/dashboard-gerente',
-      name: 'dashboard-gerente',
-      component: () => import('@/views/DashboardGerenteView.vue')
-    }
+      component: () => import('@/views/DashboardGerenteView.vue'),
+      children: [
+        {
+          path: 'funcionarios',
+          component: () => import('@/views/FuncionariosView.vue'),
+        },
+        {
+          path: 'ordens',
+          component: () => import('@/views/OrdensView.vue'),
+        },
+        {
+          path: 'ordens',
+          component: () => import('@/views/OrdensView.vue'),
+        },
+        {
+          path: 'indicadores',
+          component: () => import('@/views/IndicadoresView.vue'),
+        },  
+      ],
+    },
   ],
 })
 
