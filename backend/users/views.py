@@ -4,8 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from users.models import Usuario
-from users.serializers import UsuarioSerializer, CriarUsuarioSerializer, LoginSerializer
+from users.models import Usuario, Grupo, GrupoUsuario
+from users.serializers import UsuarioSerializer, CriarUsuarioSerializer, LoginSerializer, GrupoSerializer, GrupoUsuarioSerializer
 
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
@@ -15,6 +15,14 @@ class UsuarioViewSet(viewsets.ModelViewSet):
         if self.action == 'create':
             return CriarUsuarioSerializer
         return UsuarioSerializer
+
+class GrupoViewSet(viewsets.ModelViewSet):
+    queryset = Grupo.objects.all()
+    serializer_class = GrupoSerializer
+
+class GrupoUsuarioViewSet(viewsets.ModelViewSet):
+    queryset = GrupoUsuario.objects.all()
+    serializer_class = GrupoUsuarioSerializer
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
@@ -44,6 +52,5 @@ class LoginView(APIView):
                 'id': usuario.id,
                 'email': usuario.email,
                 'nome': usuario.nome,
-                'tipo': usuario.tipo,
             }
         }, status=status.HTTP_200_OK)

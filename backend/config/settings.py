@@ -25,10 +25,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'users',
-    'gestor',
-    'gerente',
-    'tecnico',
-    'solicitante',
     'orders',
 ]
 
