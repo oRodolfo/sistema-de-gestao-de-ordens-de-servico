@@ -37,10 +37,6 @@ const router = createRouter({
           component: () => import('@/views/OrdensView.vue'),
         },
         {
-          path: 'ordens',
-          component: () => import('@/views/OrdensView.vue'),
-        },
-        {
           path: 'indicadores',
           component: () => import('@/views/IndicadoresView.vue'),
         },  

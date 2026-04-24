@@ -10,20 +10,26 @@
 
     <nav class="flex-1 p-4 flex flex-col gap-1">
 
-      <button @click="router.push('/dashboard-gerente/funcionarios')"
-        class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-blue-100 hover:bg-blue-700 cursor-pointer">
+      <button @click="router.push('/dashboard-gerente/funcionarios')" :class="['w-full flex items-ceter gap-3 px-4 py-3 rounded-lg cursor-pointer', route.path.includes('funcionarios')
+        ? 'bg-white/20 text-white font-semibold'
+        : 'text-blue-100 hover:bg-blue-700'
+      ]">
         <span>👥</span>
         <span>Funcionários</span>
       </button>
 
-      <button @click="router.push('/dashboard-gerente/ordens')"
-        class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-blue-100 hover:bg-blue-700 cursor-pointer">
+      <button @click="router.push('/dashboard-gerente/ordens')" :class="['w-full flex items-ceter gap-3 px-4 py-3 rounded-lg cursor-pointer', route.path.includes('ordens')
+        ? 'bg-white/20 text-white font-semibold'
+        : 'text-blue-100 hover:bg-blue-700'
+      ]">
         <span>📋</span>
         <span>Ordens de Serviço</span>
       </button>
 
-      <button @click="router.push('/dashboard-gerente/indicadores')"
-        class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-blue-100 hover:bg-blue-700 cursor-pointer">
+      <button @click="router.push('/dashboard-gerente/indicadores')" :class="['w-full flex items-ceter gap-3 px-4 py-3 rounded-lg cursor-pointer', route.path.includes('indicadores')
+        ? 'bg-white/15 text-white font-semibold'
+        : 'text-blue-100 hover:bg-blue-700'
+      ]">
         <span>📊</span>
         <span>Indicadores</span>
       </button>
@@ -43,9 +49,11 @@
 
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useRoute } from 'vue-router'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const route = useRoute()
 
 function fazerLogout() {
   authStore.logout()
