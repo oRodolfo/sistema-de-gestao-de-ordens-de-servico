@@ -15,10 +15,41 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
-
+from django.urls import path
+from usuario.views import UsuarioListCreateView, UsuarioRetrieveUpdateDestroyView
+from grupo.views import GrupoListCreateView, GrupoRetrieveUpdateDestroyView
+from grupo_usuario.views import GrupoUsuarioListCreateView, GrupoUsuarioRetrieveUpdateDestroyView
+from historico.views import HistoricoListCreateView, HistoricoRetrieveUpdateDestroyView
+from localizacao.views import LocalizacaoListCreateView, LocalizacaoRetrieveUpdateDestroyView
+from ordem_servico.views import OrdemServicoListCreateView, OrdemServicoRetrieveUpdateDestroyView
+from predio.views import PredioListCreateView, PredioRetrieveUpdateDestroyView
+from authentication.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('users.urls')),
-    path('api/', include('orders.urls')),
+    
+    path('usuario/', UsuarioListCreateView.as_view(), name='usuario-list-create'),
+    path('usuario/<int:pk>/', UsuarioRetrieveUpdateDestroyView.as_view(), name='usuario-detail-view'),
+
+    path('grupo/', GrupoListCreateView.as_view(), name='grupo-list-create'),
+    path('grupo/<int:pk>/', GrupoRetrieveUpdateDestroyView.as_view(), name='grupo-detail-view'),
+
+    path('grupo-usuario/', GrupoUsuarioListCreateView.as_view(), name='grupo-usuario-list-create'),
+    path('grupo-usuario/<int:pk>/', GrupoUsuarioRetrieveUpdateDestroyView.as_view(), name='grupo-usuario-detail-view'),
+
+    path('historico/', HistoricoListCreateView.as_view(), name='historico-list-create'),
+    path('historico/<int:pk>/', HistoricoRetrieveUpdateDestroyView.as_view(), name='historico-detail-view'),
+
+    path('localizacao/', LocalizacaoListCreateView.as_view(), name='localizacao-list-create'),
+    path('localizacao/<int:pk>/', LocalizacaoRetrieveUpdateDestroyView.as_view(), name='localizacao-detail-view'),
+
+    path('ordem-servico/', OrdemServicoListCreateView.as_view(), name='ordem-servico-list-create'),
+    path('ordem-servico/<int:pk>/', OrdemServicoRetrieveUpdateDestroyView.as_view(), name='ordem-servico-detail-view'),
+
+    path('predio/', PredioListCreateView.as_view(), name='predio-list-create'),
+    path('predio/<int:pk>/', PredioRetrieveUpdateDestroyView.as_view(), name='predio-detail-view'),
+
+    path('authentication/token/', TokenObtainPairView.as_view(), name='token-obtain-pair'),
+    path('authentication/token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
+    path('authentication/token/verify/', TokenVerifyView.as_view(), name='token-verify'),
 ]

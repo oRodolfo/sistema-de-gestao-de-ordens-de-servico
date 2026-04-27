@@ -2,9 +2,9 @@ from dotenv import load_dotenv
 import os
 from pathlib import Path
 
-load_dotenv()
-
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / '.env', override=True)
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
@@ -24,11 +24,16 @@ INSTALLED_APPS = [
     'corsheaders',       
     'rest_framework',
     'rest_framework_simplejwt',
-    'users',
-    'orders',
-]
 
-AUTH_USER_MODEL = 'users.Usuario'
+    'usuario',
+    'grupo',
+    'grupo_usuario',
+    'predio',
+    'localizacao',
+    'ordem_servico',
+    'historico',
+    'authentication',
+]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # ← deve ser o PRIMEIRO
@@ -41,8 +46,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# CORS — permite o Vue.js acessar o backend
-# CORS — permite o Vue.js acessar o backend
 CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'config.urls'
@@ -73,6 +76,9 @@ DATABASES = {
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT'),
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
     }
 }
 
