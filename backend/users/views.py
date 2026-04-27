@@ -44,6 +44,10 @@ class LoginView(APIView):
         if user is None:
             return Response({'error': 'Email ou senha inválidos.'}, status=status.HTTP_401_UNAUTHORIZED)
 
+        # Busca o grupo do usuário
+        grupo_usuario = GrupoUsuario.objects.filter(usuario=usuario).first()
+        grupo = grupo_usuario.grupo.desc_grupo if grupo_usuario else None
+
         refresh = RefreshToken.for_user(user)
         return Response({
             'access': str(refresh.access_token),
@@ -52,5 +56,6 @@ class LoginView(APIView):
                 'id': usuario.id,
                 'email': usuario.email,
                 'nome': usuario.nome,
+                'grupo': grupo,
             }
         }, status=status.HTTP_200_OK)
