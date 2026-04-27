@@ -6,4 +6,6 @@ __pycache__/
 db.sqlite3
 *.log
 .vscode/
-
+tech_
+tech_order.session.sql
+backend_pi.session.sql
