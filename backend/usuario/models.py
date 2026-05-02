@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser
 
 # Create your models here.
 class Usuario(models.Model):
@@ -6,6 +7,10 @@ class Usuario(models.Model):
     nome = models.CharField(max_length=150)
     email = models.CharField(max_length=150, unique=True)
     senha_hash = models.CharField(max_length=255)
+
+    @property
+    def is_authenticated(self):
+        return True
 
     class Meta:
         managed = False

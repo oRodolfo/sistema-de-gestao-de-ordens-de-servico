@@ -5,7 +5,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import check_password
 
 from usuario.models import Usuario
-from grupo.models import Grupo
 from grupo_usuario.models import GrupoUsuario
 
 
@@ -34,13 +33,14 @@ class TokenObtainPairView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
-        vinculos = GrupoUsuario.objects.filter(id_usuario=usuario.id_usuario)
-        ids_grupos = [v.id_grupo for v in vinculos]
+        vinculos = GrupoUsuario.objects.filter(
+            usuario=usuario
+        ).select_related('grupo')
 
-        grupos_usuario = list(
-            Grupo.objects.filter(id_grupo__in=ids_grupos)
-            .values_list('desc_grupo', flat=True)
-        )
+        grupos_usuario = [
+            vinculo.grupo.desc_grupo
+            for vinculo in vinculos
+        ]
 
         refresh = RefreshToken()
         refresh['id_usuario'] = usuario.id_usuario
@@ -48,9 +48,15 @@ class TokenObtainPairView(APIView):
         refresh['email'] = usuario.email
         refresh['grupos'] = grupos_usuario
 
+        access = refresh.access_token
+        access['id_usuario'] = usuario.id_usuario
+        access['nome'] = usuario.nome
+        access['email'] = usuario.email
+        access['grupos'] = grupos_usuario
+
         return Response({
             'refresh': str(refresh),
-            'access': str(refresh.access_token),
+            'access': str(access),
             'usuario': {
                 'id_usuario': usuario.id_usuario,
                 'nome': usuario.nome,

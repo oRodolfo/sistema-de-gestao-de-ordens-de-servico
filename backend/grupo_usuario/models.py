@@ -1,11 +1,24 @@
 from django.db import models
-
+from usuario.models import Usuario
+from grupo.models import Grupo
 
 class GrupoUsuario(models.Model):
-    id_usuario = models.BigIntegerField(primary_key=True)
-    id_grupo = models.BigIntegerField()
+    usuario = models.ForeignKey(
+        Usuario,
+        on_delete=models.CASCADE,
+        db_column='id_usuario',
+        primary_key=True
+    )
+    grupo = models.ForeignKey(
+        Grupo,
+        on_delete=models.CASCADE,
+        db_column='id_grupo'
+    )
 
     class Meta:
         managed = False
         db_table = 'grupo_usuario'
-        unique_together = (('id_usuario', 'id_grupo'),)
+        unique_together = (('usuario', 'grupo'),)
+
+    def __str__(self):
+        return f'{self.usuario} - {self.grupo}'

@@ -16,18 +16,19 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from usuario.views import UsuarioListCreateView, UsuarioRetrieveUpdateDestroyView
+from usuario.views import UsuarioListCreateView, UsuarioRetrieveUpdateDestroyView, UsuarioMeusDadosView
 from grupo.views import GrupoListCreateView, GrupoRetrieveUpdateDestroyView
 from grupo_usuario.views import GrupoUsuarioListCreateView, GrupoUsuarioRetrieveUpdateDestroyView
-from historico.views import HistoricoListCreateView, HistoricoRetrieveUpdateDestroyView
+from historico.views import HistoricoListView, HistoricoOrdemServicoListView
 from localizacao.views import LocalizacaoListCreateView, LocalizacaoRetrieveUpdateDestroyView
-from ordem_servico.views import OrdemServicoListCreateView, OrdemServicoRetrieveUpdateDestroyView
+from ordem_servico.views import OrdemServicoListCreateView, OrdemServicoRetrieveUpdateDestroyView, OrdemServicoAtribuirTecnicoView
 from predio.views import PredioListCreateView, PredioRetrieveUpdateDestroyView
 from authentication.views import TokenObtainPairView
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 urlpatterns = [
     path('admin/', admin.site.urls),
     
+    path('usuario/meus-dados/', UsuarioMeusDadosView.as_view(), name='usuario-meus-dados-view'),
     path('usuario/', UsuarioListCreateView.as_view(), name='usuario-list-create'),
     path('usuario/<int:pk>/', UsuarioRetrieveUpdateDestroyView.as_view(), name='usuario-detail-view'),
 
@@ -37,14 +38,15 @@ urlpatterns = [
     path('grupo-usuario/', GrupoUsuarioListCreateView.as_view(), name='grupo-usuario-list-create'),
     path('grupo-usuario/<int:pk>/', GrupoUsuarioRetrieveUpdateDestroyView.as_view(), name='grupo-usuario-detail-view'),
 
-    path('historico/', HistoricoListCreateView.as_view(), name='historico-list-create'),
-    path('historico/<int:pk>/', HistoricoRetrieveUpdateDestroyView.as_view(), name='historico-detail-view'),
+   path('historico/', HistoricoListView.as_view(), name='historico-list'),
+    path('ordem-servico/<int:pk>/historico/', HistoricoOrdemServicoListView.as_view(), name='historico-ordem-servico'),
 
     path('localizacao/', LocalizacaoListCreateView.as_view(), name='localizacao-list-create'),
     path('localizacao/<int:pk>/', LocalizacaoRetrieveUpdateDestroyView.as_view(), name='localizacao-detail-view'),
 
     path('ordem-servico/', OrdemServicoListCreateView.as_view(), name='ordem-servico-list-create'),
     path('ordem-servico/<int:pk>/', OrdemServicoRetrieveUpdateDestroyView.as_view(), name='ordem-servico-detail-view'),
+    path('ordem-servico/<int:pk>/atribuir-tecnico/', OrdemServicoAtribuirTecnicoView.as_view(), name='ordem-servico-atribuir-tecnico'),
 
     path('predio/', PredioListCreateView.as_view(), name='predio-list-create'),
     path('predio/<int:pk>/', PredioRetrieveUpdateDestroyView.as_view(), name='predio-detail-view'),

@@ -1,14 +1,41 @@
 from django.db import models
 from localizacao.models import Localizacao
-# Create your models here.
+from usuario.models import Usuario
 
 class OrdemServico(models.Model):
     id_ordem_servico = models.BigAutoField(primary_key=True)
+
     localizacao = models.ForeignKey(
         Localizacao,
         on_delete=models.DO_NOTHING,
         db_column='id_localizacao'
     )
+
+    solicitante = models.ForeignKey(
+        Usuario,
+        on_delete=models.DO_NOTHING,
+        db_column='id_solicitante',
+        related_name='ordens_abertas'
+    )
+
+    gestor = models.ForeignKey(
+        Usuario,
+        on_delete=models.DO_NOTHING,
+        db_column='id_gestor',
+        related_name='ordens_gerenciadas',
+        null=True,
+        blank=True
+    )
+
+    tecnico = models.ForeignKey(
+        Usuario,
+        on_delete=models.DO_NOTHING,
+        db_column='id_tecnico',
+        related_name='ordens_atribuidas',
+        null=True,
+        blank=True
+    )
+
     prioridade_urgencia = models.CharField(max_length=20)
     status_ordem_servico = models.CharField(max_length=30)
     dt_abertura = models.DateTimeField()
