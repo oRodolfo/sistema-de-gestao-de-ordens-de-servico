@@ -25,33 +25,34 @@ from ordem_servico.views import OrdemServicoListCreateView, OrdemServicoRetrieve
 from predio.views import PredioListCreateView, PredioRetrieveUpdateDestroyView
 from authentication.views import TokenObtainPairView
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    path('usuario/meus-dados/', UsuarioMeusDadosView.as_view(), name='usuario-meus-dados-view'),
-    path('usuario/', UsuarioListCreateView.as_view(), name='usuario-list-create'),
-    path('usuario/<int:pk>/', UsuarioRetrieveUpdateDestroyView.as_view(), name='usuario-detail-view'),
+    path('usuario/meus-dados/', UsuarioMeusDadosView.as_view(), name='usuario-meus-dados-view'), # Endpoint para o usuário autenticado visualizar e atualizar seus próprios dados
+    path('usuario/', UsuarioListCreateView.as_view(), name='usuario-list-create'), # Endpoint para listar e criar usuários, acessível apenas para usuários autenticados e com a permissão de gerente
+    path('usuario/<int:pk>/', UsuarioRetrieveUpdateDestroyView.as_view(), name='usuario-detail-view'), # Endpoint para recuperar, atualizar e deletar um usuário específico, acessível apenas para usuários autenticados e com a permissão de gerente
 
-    path('grupo/', GrupoListCreateView.as_view(), name='grupo-list-create'),
-    path('grupo/<int:pk>/', GrupoRetrieveUpdateDestroyView.as_view(), name='grupo-detail-view'),
+    path('grupo/', GrupoListCreateView.as_view(), name='grupo-list-create'), # Endpoint para listar e criar grupos, acessível apenas para usuários autenticados e com a permissão de gerente
+    path('grupo/<int:pk>/', GrupoRetrieveUpdateDestroyView.as_view(), name='grupo-detail-view'), # Endpoint para recuperar, atualizar e deletar um grupo específico, acessível apenas para usuários autenticados e com a permissão de gerente
 
-    path('grupo-usuario/', GrupoUsuarioListCreateView.as_view(), name='grupo-usuario-list-create'),
-    path('grupo-usuario/<int:pk>/', GrupoUsuarioRetrieveUpdateDestroyView.as_view(), name='grupo-usuario-detail-view'),
+    path('grupo-usuario/', GrupoUsuarioListCreateView.as_view(), name='grupo-usuario-list-create'), # Endpoint para listar e criar associações entre grupos e usuários, acessível apenas para usuários autenticados e com a permissão de gerente
+    path('grupo-usuario/<int:pk>/', GrupoUsuarioRetrieveUpdateDestroyView.as_view(), name='grupo-usuario-detail-view'), # Endpoint para recuperar, atualizar e deletar uma associação específica entre grupo e usuário, acessível apenas para usuários autenticados e com a permissão de gerente
 
-   path('historico/', HistoricoListView.as_view(), name='historico-list'),
-    path('ordem-servico/<int:pk>/historico/', HistoricoOrdemServicoListView.as_view(), name='historico-ordem-servico'),
+    path('historico/', HistoricoListView.as_view(), name='historico-list'), # Endpoint para listar todos os históricos de ordens de serviço, acessível apenas para usuários autenticados. Os técnicos só podem visualizar os históricos das ordens de serviço atribuídas a eles, enquanto os gerentes podem visualizar todos os históricos.
+    path('ordem-servico/<int:pk>/historico/', HistoricoOrdemServicoListView.as_view(), name='historico-ordem-servico'), # Endpoint para listar os históricos de uma ordem de serviço específica, acessível apenas para usuários autenticados. Os técnicos só podem visualizar os históricos das ordens de serviço atribuídas a eles, enquanto os gerentes podem visualizar todos os históricos.
 
-    path('localizacao/', LocalizacaoListCreateView.as_view(), name='localizacao-list-create'),
-    path('localizacao/<int:pk>/', LocalizacaoRetrieveUpdateDestroyView.as_view(), name='localizacao-detail-view'),
+    path('localizacao/', LocalizacaoListCreateView.as_view(), name='localizacao-list-create'), # Endpoint para listar e criar localizações, acessível para usuários autenticados.
+    path('localizacao/<int:pk>/', LocalizacaoRetrieveUpdateDestroyView.as_view(), name='localizacao-detail-view'), # Endpoint para recuperar, atualizar e deletar uma localização específica, acessível para usuários autenticados. A atualização e exclusão são restritas a usuários com a permissão de gerente.
 
-    path('ordem-servico/', OrdemServicoListCreateView.as_view(), name='ordem-servico-list-create'),
-    path('ordem-servico/<int:pk>/', OrdemServicoRetrieveUpdateDestroyView.as_view(), name='ordem-servico-detail-view'),
-    path('ordem-servico/<int:pk>/atribuir-tecnico/', OrdemServicoAtribuirTecnicoView.as_view(), name='ordem-servico-atribuir-tecnico'),
+    path('ordem-servico/', OrdemServicoListCreateView.as_view(), name='ordem-servico-list-create'), # Endpoint para listar e criar ordens de serviço, acessível para usuários autenticados.
+    path('ordem-servico/<int:pk>/', OrdemServicoRetrieveUpdateDestroyView.as_view(), name='ordem-servico-detail-view'), # Endpoint para recuperar, atualizar e deletar uma ordem de serviço específica, acessível para usuários autenticados. A atualização e exclusão são restritas ao solicitante da ordem ou a usuários com a permissão de gerente.
+    path('ordem-servico/<int:pk>/atribuir-tecnico/', OrdemServicoAtribuirTecnicoView.as_view(), name='ordem-servico-atribuir-tecnico'), # Endpoint para atribuir um técnico a uma ordem de serviço específica, acessível apenas para usuários autenticados e com a permissão de gerente.
 
-    path('predio/', PredioListCreateView.as_view(), name='predio-list-create'),
-    path('predio/<int:pk>/', PredioRetrieveUpdateDestroyView.as_view(), name='predio-detail-view'),
+    path('predio/', PredioListCreateView.as_view(), name='predio-list-create'), # Endpoint para listar e criar prédios, acessível para usuários autenticados.
+    path('predio/<int:pk>/', PredioRetrieveUpdateDestroyView.as_view(), name='predio-detail-view'), # Endpoint para recuperar, atualizar e deletar um prédio específico, acessível para usuários autenticados. A atualização e exclusão são restritas a usuários com a permissão de gerente.
 
-    path('authentication/token/', TokenObtainPairView.as_view(), name='token-obtain-pair'),
-    path('authentication/token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
-    path('authentication/token/verify/', TokenVerifyView.as_view(), name='token-verify'),
+    path('authentication/token/', TokenObtainPairView.as_view(), name='token-obtain-pair'), #login e geração dos tokens
+    path('authentication/token/refresh/', TokenRefreshView.as_view(), name='token-refresh'), #renova o access token usando refresh token
+    path('authentication/token/verify/', TokenVerifyView.as_view(), name='token-verify'), #verifica se o token ainda é válido
 ]

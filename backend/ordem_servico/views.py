@@ -10,11 +10,13 @@ from utils.responses import resposta_sucesso, resposta_erro
 from utils.permissions import usuario_tem_grupo
 from utils.historico import registrar_historico
 
-
+# Create your views here.
+# Views para a tabela ordem_servico, utilizando as permissões e regras de negócio definidas para cada tipo de usuário (solicitante, técnico, gestor e gerente).
 class OrdemServicoListCreateView(generics.ListCreateAPIView):
     serializer_class = OrdemServicoSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = (IsAuthenticated,)
 
+    # Sobrescreve o método get_queryset para retornar as ordens de serviço de acordo com o tipo do usuário autenticado, aplicando as regras de acesso definidas para cada grupo (solicitante, técnico, gestor e gerente).
     def get_queryset(self):
         usuario = self.request.user
 
@@ -29,6 +31,7 @@ class OrdemServicoListCreateView(generics.ListCreateAPIView):
 
         return OrdemServico.objects.filter(solicitante=usuario).order_by('-dt_abertura')
 
+    # Sobrescreve o método create para definir o solicitante como o usuário autenticado, definir o status como 'ABERTA' e a data de abertura como a data atual (quando a ordem-servico foi aberta). Também registra um histórico da abertura da ordem de serviço.
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
@@ -49,10 +52,10 @@ class OrdemServicoListCreateView(generics.ListCreateAPIView):
 
         return resposta_erro("Erro ao abrir ordem de serviço.", serializer.errors)
 
-
+# View para recuperar, atualizar e deletar uma ordem de serviço específica, aplicando as regras de acesso e as validações necessárias para cada tipo de usuário (solicitante, técnico, gestor e gerente). O método update também registra históricos das alterações realizadas.
 class OrdemServicoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = OrdemServicoSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         usuario = self.request.user
@@ -68,6 +71,7 @@ class OrdemServicoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
 
         return OrdemServico.objects.filter(solicitante=usuario)
 
+    # Sobrescreve o método retrieve para retornar uma ordem de serviço específica, aplicando as regras de acesso definidas para cada grupo (solicitante, técnico, gestor e gerente).
     def retrieve(self, request, *args, **kwargs):
         ordem_servico = self.get_object()
         return resposta_sucesso(
@@ -75,6 +79,7 @@ class OrdemServicoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
             self.get_serializer(ordem_servico).data
         )
 
+    # Sobrescreve o método update para atualizar uma ordem de serviço específica, aplicando as regras de acesso e as validações necessárias para cada tipo de usuário (solicitante, técnico, gestor e gerente). O método também registra históricos das alterações realizadas.
     def update(self, request, *args, **kwargs):
         parcial = kwargs.pop("partial", False)
         ordem_servico = self.get_object()
@@ -142,6 +147,7 @@ class OrdemServicoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
 
             return resposta_erro("Operação não permitida.", None)
 
+        # Regras para técnicos e gestores: só podem alterar o status da ordem de serviço, e apenas para os status permitidos para cada tipo de usuário. Além disso, técnicos só podem alterar ordens de serviço que estão atribuídas a eles, e gestores só podem alterar ordens de serviço que estão sob sua gestão.
         if usuario_tem_grupo(usuario, "TECNICO"):
 
             if ordem_servico.tecnico_id != usuario.id_usuario:
@@ -169,6 +175,7 @@ class OrdemServicoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
                 if ocupado:
                     return resposta_erro("Já possui OS em execução.", None)
 
+        # Regras para gestores: só podem alterar o status da ordem de serviço, e apenas para os status permitidos para gestores. Além disso, gestores só podem alterar ordens de serviço que estão sob sua gestão.
         elif usuario_tem_grupo(usuario, "GESTOR"):
 
             if ordem_servico.gestor_id != usuario.id_usuario:
@@ -204,6 +211,7 @@ class OrdemServicoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
 
         return resposta_erro("Erro ao atualizar", serializer.errors)
 
+    # Sobrescreve o método destroy para cancelar uma ordem de serviço específica, aplicando as regras de acesso definidas para cada grupo (solicitante, técnico, gestor e gerente). Apenas ordens de serviço com status 'ABERTA' podem ser canceladas, e o método registra um histórico do cancelamento.
     def destroy(self, request, *args, **kwargs):
         ordem_servico = self.get_object()
         usuario = request.user
@@ -227,10 +235,11 @@ class OrdemServicoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
 
         return resposta_erro("Sem permissão.", None)
 
-
+# View para atribuir um técnico a uma ordem de serviço específica, aplicando as regras de acesso definidas para cada grupo (apenas gestores e gerentes podem acessar este endpoint). O método também registra um histórico da atribuição do técnico.
 class OrdemServicoAtribuirTecnicoView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = (IsAuthenticated)
 
+    # Sobrescreve o método patch para atribuir um técnico a uma ordem de serviço específica, aplicando as regras de acesso definidas para cada grupo (apenas gestores e gerentes podem acessar este endpoint). O método também registra um histórico da atribuição do técnico.
     def patch(self, request, pk):
 
         if not usuario_tem_grupo(request.user, "GESTOR") and not usuario_tem_grupo(request.user, "GERENTE"):

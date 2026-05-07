@@ -6,11 +6,14 @@ from rest_framework.permissions import IsAuthenticated
 from utils.permissions import IsGerente
 # Create your views here.
 
+# View para listar e criar grupos
 class GrupoListCreateView(generics.ListCreateAPIView):
+    # Configurações da view
     queryset = Grupo.objects.all()
     serializer_class = GrupoSerializer
-    permission_classes = [IsAuthenticated, IsGerente]
+    permission_classes = (IsAuthenticated, IsGerente)
 
+    # Sobrescreve o método create para retornar uma resposta personalizada
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
@@ -24,10 +27,13 @@ class GrupoListCreateView(generics.ListCreateAPIView):
 
         return resposta_erro("Erro ao cadastrar grupo.", serializer.errors)
 
+# View para recuperar, atualizar e deletar um grupo específico
 class GrupoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Grupo.objects.all()
     serializer_class = GrupoSerializer
-    permission_classes = [IsAuthenticated, IsGerente]
+    permission_classes = (IsAuthenticated, IsGerente)
+
+    # Sobrescreve o método retrieve para retornar uma resposta personalizada
     def retrieve(self, request, *args, **kwargs):
         grupo = self.get_object()
         return resposta_sucesso(
@@ -35,6 +41,7 @@ class GrupoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
             self.get_serializer(grupo).data
         )
 
+    # Sobrescreve o método update para retornar uma resposta personalizada
     def update(self, request, *args, **kwargs):
         parcial = kwargs.pop("partial", False)
         grupo = self.get_object()
@@ -49,6 +56,7 @@ class GrupoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
         return resposta_erro("Erro ao atualizar grupo.", serializer.errors)
 
+    # Sobrescreve o método destroy para retornar uma resposta personalizada
     def destroy(self, request, *args, **kwargs):
         grupo = self.get_object()
         grupo.delete()

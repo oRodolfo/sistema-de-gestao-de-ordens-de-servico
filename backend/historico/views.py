@@ -5,10 +5,11 @@ from historico.models import Historico
 from historico.serializers import HistoricoSerializer
 from utils.permissions import usuario_tem_grupo
 
-
+# Create your views here.
+# View para listar o histórico de ordens de serviço
 class HistoricoListView(generics.ListAPIView):
     serializer_class = HistoricoSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = (IsAuthenticated)
 
     def get_queryset(self):
         usuario = self.request.user
@@ -30,10 +31,10 @@ class HistoricoListView(generics.ListAPIView):
             ordem_servico__solicitante=usuario
         ).order_by('-data_registro')
 
-
+# View para listar o histórico de uma ordem de serviço específica
 class HistoricoOrdemServicoListView(generics.ListAPIView):
     serializer_class = HistoricoSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         usuario = self.request.user
