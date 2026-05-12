@@ -4,9 +4,16 @@ import { ref } from 'vue'
 export const useAuthStore = defineStore('auth', () => {
     
     const token = ref(localStorage.getItem('token') || '')
-    const usuario = ref(JSON.parse(localStorage.getItem('usuario') || 'null'))
+    
+    // MEXI AQUI: Verificação extra para evitar o erro de SyntaxError
+    const usuarioLocalStorage = localStorage.getItem('usuario')
+    const usuario = ref(
+        usuarioLocalStorage && usuarioLocalStorage !== "undefined" 
+        ? JSON.parse(usuarioLocalStorage) 
+        : null
+    )
 
-    function salvarLogin (accessToken: string, dadosUsuario: any) {
+    function salvarLogin(accessToken: string, dadosUsuario: any) {
         token.value = accessToken
         usuario.value = dadosUsuario
 

@@ -242,8 +242,22 @@ const mostrarConfirmacaoEdicao = ref(false)
 
 
 onMounted(async () => {
-  const resposta = await api.get('/usuarios/')
-  funcionarios.value = resposta.data
+  try {
+    const token = localStorage.getItem('token')
+    
+    // A URL correta de acordo com o seu urls.py é 'usuario/'
+    const resposta = await api.get('/usuario/', { 
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    
+    console.log("Funcionários carregados:", resposta.data)
+    funcionarios.value = resposta.data
+    
+  } catch (e) {
+    console.error("Erro ao carregar funcionários:", e)
+  }
 })
 
 async function salvarFuncionario() {

@@ -89,22 +89,33 @@ async function fazerLogin() {
     try {
         const resposta = await api.post('/authentication/token/', {
             email: email.value,
-            password: senha.value
+            senha: senha.value
         })
 
-        authStore.salvarLogin(resposta.data.access, resposta.data.user)
+        // 1. Pegamos o objeto 'usuario' que você acabou de me mostrar
+        const dadosUsuario = resposta.data.usuario 
+        
+        // 2. Salvamos no Pinia (verifique se sua store espera 'usuario' ou 'user')
+        authStore.salvarLogin(resposta.data.access, dadosUsuario)
 
-        if (resposta.data.user.tipo === 'gerente'){
-            router.push('/dashboard-gerente')
+        console.log("Login realizado com sucesso! Usuário:", dadosUsuario.nome)
+
+        // 3. Lógica de Redirecionamento baseada no seu JSON ("GERENTE")
+        // Usamos .includes() porque 'grupos' é uma lista
+        if (dadosUsuario.grupos.includes('GERENTE')) {
+            router.push('/dashboard-gerente/funcionarios')
+        } else if (dadosUsuario.grupos.includes('GESTOR')) {
+            router.push('/dashboard-gestor/ordens')
+        } else if (dadosUsuario.grupos.includes('TECNICO')) {
+            router.push('/dashboard-tecnico/ordens')
         } else {
             router.push('/dashboard')
         }
 
-    } catch (e) {
-        erro.value = 'Email ou senha inválidos'
+    } catch (e: any) {
+        console.error("Erro ao processar login:", e)
+        erro.value = e.response?.data?.erro || 'Erro ao entrar no sistema'
         setTimeout(() => { erro.value = '' }, 3000)
-    } finally {
-        carregando.value = false
     }
 }
 </script>
