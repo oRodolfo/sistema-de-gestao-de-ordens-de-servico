@@ -1,6 +1,6 @@
 <template>
   <div class="flex h-screen overflow-hidden">
-    <SidebarGerente />
+    <SidebarGestor />
     <main class="flex-1 bg-gray-100 overflow-y-auto">
       <RouterView />
     </main>
@@ -8,5 +8,5 @@
 </template>
 
 <script setup lang="ts">
-import SidebarGerente from '@/components/SidebarGerente.vue'
+import SidebarGestor from '@/components/SidebarGestor.vue'
 </script>

@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from utils.permissions import IsGerente
 from rest_framework.views import APIView
 
+
 # Create your views here.
 # As views abaixo utilizam os serializers definidos em serializers.py para criar, listar, atualizar e deletar usuários, 
 # além de permitir que o usuário autenticado visualize e atualize seus próprios dados. 

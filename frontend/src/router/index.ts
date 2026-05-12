@@ -39,7 +39,31 @@ const router = createRouter({
         {
           path: 'indicadores',
           component: () => import('@/views/IndicadoresView.vue'),
-        },  
+        },
+      ],
+    },
+    {
+      path: '/dashboard-gestor',
+      component: () => import('@/views/DashboardGestorView.vue'),
+      children: [
+        {
+          path: 'ordens',
+          component: () => import('@/views/OrdensGestorView.vue'),
+        },
+        {
+          path: 'indicadores',
+          component: () => import('@/views/IndicadoresGestorView.vue'),
+        },
+      ],
+    },
+    {
+      path: '/dashboard-tecnico',
+      component: () => import('@/views/DashboardTecnicoView.vue'),
+      children: [
+        {
+          path: 'ordens',
+          component: () => import('@/views/OrdensTecnicoView.vue'),
+        },
       ],
     },
   ],

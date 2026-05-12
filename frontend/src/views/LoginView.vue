@@ -83,8 +83,11 @@ async function fazerLogin() {
     carregando.value = true
     erro.value = ''
 
+    // VAMOS VER O QUE ELE ESTÁ PEGANDO AQUI:
+    console.log("DADOS QUE VÃO PARA O PYTHON:", { email: email.value, senha: senha.value });
+
     try {
-        const resposta = await api.post('/login/', {
+        const resposta = await api.post('/authentication/token/', {
             email: email.value,
             password: senha.value
         })
