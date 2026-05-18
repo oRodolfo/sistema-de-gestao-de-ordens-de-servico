@@ -105,6 +105,8 @@ from datetime import timedelta
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'USER_ID_FIELD': 'id_usuario',   # ← adicionei ass Zaia
+    'USER_ID_CLAIM': 'id_usuario',   # ← adicionei ass Zaia
 }
 
 REST_FRAMEWORK = {

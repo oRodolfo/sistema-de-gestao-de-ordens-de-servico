@@ -10,13 +10,13 @@
         </div>
 
         <!-- TOAST -->
-         <div v-if="erro" class="absolute top-4 left-0 right-0 flex justify-center z-50">
+        <div v-if="erro" class="absolute top-4 left-0 right-0 flex justify-center z-50">
             <div class="bg-red-500 text-white px-5 py-4 rounded-lg flex items-center gap-3">
                 <span>X</span>
                 <p class="text-sm font-medium">{{ erro }}</p>
 
             </div>
-         </div>
+        </div>
 
         <!-- Painel Branco -->
         <div class="flex-1 flex flex-col items-center justify-center">
@@ -52,9 +52,10 @@
                         <select v-model="tipo"
                             class="border border-gray-300 rounded-lg px-4 py-3 text-sm outline-none focus:border-blue-600 w-full cursor-pointer">
                             <option value="">Escolha a função do usuario</option>
-                            <option value="gerente">Gerente</option>
-                            <option value="gestor">Gestor</option>
-                            <option value="tecnico">Técnico</option>
+                            <option value="1">Gerente</option>
+                            <option value="2">Gestor</option>
+                            <option value="3">Técnico</option>
+                            <option value="4">Solicitante</option>
                         </select>
                     </div>
 
@@ -97,11 +98,11 @@ async function cadastrar() {
     erro.value = ''
 
     try {
-        await api.post('/usuarios/', {
+        await api.post('/usuario/', {
             nome: nome.value,
             email: email.value,
             senha: senha.value,
-            tipo: tipo.value
+            grupo: Number(tipo.value)
         })
 
         sucesso.value = true
@@ -115,4 +116,3 @@ async function cadastrar() {
 }
 
 </script>
-

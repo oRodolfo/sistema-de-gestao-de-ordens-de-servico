@@ -14,6 +14,7 @@ from grupo_usuario.models import GrupoUsuario
 class TokenObtainPairView(APIView):
     # Libera o acesso e garante a leitura do JSON vindo do Vue
     permission_classes = [AllowAny]
+    authentication_classes = [] # Adicionei ass Zaia
     parser_classes = [JSONParser]
 
     def post(self, request):
