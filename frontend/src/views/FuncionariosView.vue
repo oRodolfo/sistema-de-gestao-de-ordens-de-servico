@@ -33,7 +33,6 @@
       </table>
     </div>
 
-    <!-- Modal Novo Funcionário -->
     <div v-if="mostrarModal" @click.self="mostrarModal = false"
       class="fixed inset-0 bg-black/65 z-50 flex items-center justify-center">
       <div class="bg-white rounded-lg p-8 w-full max-w-md">
@@ -75,7 +74,6 @@
       </div>
     </div>
 
-    <!-- Modal Confirmação Cadastro -->
     <div v-if="mostrarConfirmacaoCadastro" @click.self="mostrarConfirmacaoCadastro = false"
       class="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
       <div class="bg-white rounded-lg p-8 w-full max-w-sm">
@@ -92,7 +90,6 @@
       </div>
     </div>
 
-    <!-- Modal Deletar -->
     <div v-if="mostrarModalDeletar" @click.self="mostrarModalDeletar = false"
       class="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
       <div class="bg-white rounded-lg p-8 w-full max-w-sm">
@@ -110,7 +107,6 @@
       </div>
     </div>
 
-    <!-- Modal Editar -->
     <div v-if="mostrarModalEditar" @click.self="mostrarModalEditar = false"
       class="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
       <div class="bg-white rounded-lg p-8 w-full max-w-md">
@@ -145,7 +141,6 @@
           </div>
         </div>
 
-        <!-- Modal Confirmação Edição -->
         <div v-if="mostrarConfirmacaoEdicao" @click.self="mostrarConfirmacaoEdicao = false"
           class="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
           <div class="bg-white rounded-lg p-8 w-full max-w-sm">
@@ -161,6 +156,21 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div v-if="mostrarModalSucesso" @click.self="mostrarModalSucesso = false"
+      class="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+      <div class="bg-white rounded-lg p-8 w-full max-w-sm text-center flex flex-col items-center">
+        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-3xl mb-4">
+          ✓
+        </div>
+        <h2 class="text-xl font-bold text-gray-800 mb-2">{{ tituloSucesso }}</h2>
+        <p class="text-gray-500 text-sm mb-6">{{ mensagemSucesso }}</p>
+        <button @click="mostrarModalSucesso = false"
+          class="w-full py-3 rounded-lg bg-blue-800 text-white font-semibold hover:bg-blue-600 cursor-pointer">
+          Fechar
+        </button>
       </div>
     </div>
 
@@ -182,14 +192,24 @@ const mostrarModalEditar = ref(false)
 const funcionarioEditando = ref<any>(null)
 const mostrarConfirmacaoEdicao = ref(false)
 
+const mostrarModalSucesso = ref(false)
+const tituloSucesso = ref('')
+const mensagemSucesso = ref('')
+
 onMounted(async () => {
   const [resUsuarios, resGrupos] = await Promise.all([
     api.get('/usuario/'),
     api.get('/grupo/')
   ])
   funcionarios.value = resUsuarios.data
-  grupos.value = resGrupos.data.dados
+  grupos.value = resGrupos.data
 })
+
+function dispararSucesso(titulo: string, mensagem: string) {
+  tituloSucesso.value = titulo
+  mensagemSucesso.value = mensagem
+  mostrarModalSucesso.value = true
+}
 
 async function salvarFuncionario() {
   try {
@@ -201,9 +221,12 @@ async function salvarFuncionario() {
     })
     const res = await api.get('/usuario/')
     funcionarios.value = res.data
+    
     mostrarModal.value = false
     mostrarConfirmacaoCadastro.value = false
     novoFuncionario.value = { nome: '', email: '', senha: '', grupo: '' }
+    
+    dispararSucesso('Cadastrado!', 'O novo funcionário foi adicionado com sucesso.')
   } catch (e) {
     console.error('Erro ao salvar funcionário', e)
   }
@@ -217,38 +240,44 @@ function confirmarDelete(funcionario: any) {
 async function deletarFuncionario() {
   try {
     await api.delete(`/usuario/${funcionarioParaDeletar.value.id_usuario}/`)
+    
     funcionarios.value = funcionarios.value.filter(
       (f: any) => f.id_usuario !== funcionarioParaDeletar.value.id_usuario
     )
+    
     mostrarModalDeletar.value = false
     funcionarioParaDeletar.value = null
+    
+    dispararSucesso('Excluído!', 'O funcionário foi removido do sistema com sucesso.')
   } catch (e) {
     console.error('Erro ao deletar', e)
   }
 }
 
 function abrirEditar(funcionario: any) {
-  funcionarioEditando.value = { ...funcionario }
+  funcionarioEditando.value = { 
+    ...funcionario, 
+    grupo: funcionario.id_grupo ? Number(funcionario.id_grupo) : '' 
+  }
   mostrarModalEditar.value = true
 }
 
 async function salvarEdicao() {
   try {
-    await api.put(`/usuario/${funcionarioEditando.value.id_usuario}/`, {
+    await api.patch(`/usuario/${funcionarioEditando.value.id_usuario}/`, {
       nome: funcionarioEditando.value.nome,
       email: funcionarioEditando.value.email,
+      grupo: Number(funcionarioEditando.value.grupo)
     })
-    if (funcionarioEditando.value.grupo) {
-      await api.post('/grupo-usuario/', {
-        id_usuario: funcionarioEditando.value.id_usuario,
-        id_grupo: funcionarioEditando.value.grupo
-      })
-    }
+    
     const res = await api.get('/usuario/')
     funcionarios.value = res.data
+    
     mostrarModalEditar.value = false
     mostrarConfirmacaoEdicao.value = false
     funcionarioEditando.value = null
+    
+    dispararSucesso('Atualizado!', 'As alterações do funcionário foram salvas com sucesso.')
   } catch (e) {
     console.error('Erro ao editar', e)
   }
