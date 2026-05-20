@@ -83,29 +83,22 @@ async function fazerLogin() {
     carregando.value = true
     erro.value = ''
 
-    // VAMOS VER O QUE ELE ESTÁ PEGANDO AQUI:
-    console.log("DADOS QUE VÃO PARA O PYTHON:", { email: email.value, senha: senha.value });
-
     try {
         const resposta = await api.post('/authentication/token/', {
             email: email.value,
             senha: senha.value
         })
 
-        // 1. Pegamos o objeto 'usuario' que você acabou de me mostrar
         const dadosUsuario = resposta.data.usuario 
-        
-        // 2. Salvamos no Pinia (verifique se sua store espera 'usuario' ou 'user')
+
         authStore.salvarLogin(resposta.data.access, dadosUsuario)
 
         console.log("Login realizado com sucesso! Usuário:", dadosUsuario.nome)
 
-        // 3. Lógica de Redirecionamento baseada no seu JSON ("GERENTE")
-        // Usamos .includes() porque 'grupos' é uma lista
         if (dadosUsuario.grupos.includes('GERENTE')) {
-            router.push('/dashboard-gerente/funcionarios')
+            router.push('/dashboard-gerente/indicadores')
         } else if (dadosUsuario.grupos.includes('GESTOR')) {
-            router.push('/dashboard-gestor/ordens')
+            router.push('/dashboard-gestor/indicadores')
         } else if (dadosUsuario.grupos.includes('TECNICO')) {
             router.push('/dashboard-tecnico/ordens')
         } else {
@@ -116,6 +109,7 @@ async function fazerLogin() {
         console.error("Erro ao processar login:", e)
         erro.value = e.response?.data?.erro || 'Erro ao entrar no sistema'
         setTimeout(() => { erro.value = '' }, 3000)
+        carregando.value = false
     }
 }
 </script>

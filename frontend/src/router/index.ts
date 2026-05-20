@@ -10,11 +10,6 @@ const router = createRouter({
       component: LoginView,
     },
     {
-      path: '/cadastro',
-      name: 'Cadastro',
-      component: () => import('@/views/CadastroView.vue'),
-    },
-    {
       path: '/dashboard',
       name: 'dashboard',
       component: () => import('@/views/DashboardView.vue'),
@@ -29,16 +24,16 @@ const router = createRouter({
       component: () => import('@/views/DashboardGerenteView.vue'),
       children: [
         {
+          path: 'indicadores',
+          component: () => import('@/views/IndicadoresView.vue'),
+        },
+        {
           path: 'funcionarios',
           component: () => import('@/views/FuncionariosView.vue'),
         },
         {
           path: 'ordens',
           component: () => import('@/views/OrdensView.vue'),
-        },
-        {
-          path: 'indicadores',
-          component: () => import('@/views/IndicadoresView.vue'),
         },
       ],
     },
@@ -52,7 +47,7 @@ const router = createRouter({
         },
         {
           path: 'indicadores',
-          component: () => import('@/views/IndicadoresGestorView.vue'),
+          component: () => import('@/views/Indicadoresgestorview.vue'),
         },
       ],
     },
