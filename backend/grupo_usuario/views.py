@@ -18,11 +18,7 @@ class GrupoUsuarioListCreateView(generics.ListCreateAPIView):
 
         if serializer.is_valid():
             grupo_usuario = serializer.save()
-            return resposta_sucesso(
-                "Grupo-Usuário cadastrado com sucesso.",
-                GrupoUsuarioSerializer(grupo_usuario).data,
-                status.HTTP_201_CREATED
-            )
+            return resposta_sucesso("Grupo-Usuário cadastrado com sucesso.", GrupoUsuarioSerializer(grupo_usuario).data,  status.HTTP_201_CREATED)
 
         return resposta_erro("Erro ao cadastrar grupo-usuário.", serializer.errors)
 
@@ -34,10 +30,7 @@ class GrupoUsuarioRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
     # Sobrescreve os métodos para fornecer respostas personalizadas
     def retrieve(self, request, *args, **kwargs):
         grupo_usuario = self.get_object()
-        return resposta_sucesso(
-            "Grupo-Usuário encontrado com sucesso.",
-            self.get_serializer(grupo_usuario).data
-        )
+        return resposta_sucesso("Grupo-Usuário encontrado com sucesso.", self.get_serializer(grupo_usuario).data)
 
     # Sobrescreve o método update para fornecer respostas personalizadas
     def update(self, request, *args, **kwargs):
@@ -47,10 +40,7 @@ class GrupoUsuarioRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
 
         if serializer.is_valid():
             grupo_usuario = serializer.save()
-            return resposta_sucesso(
-                "Grupo-Usuário atualizado com sucesso.",
-                GrupoUsuarioSerializer(grupo_usuario).data
-            )
+            return resposta_sucesso("Grupo-Usuário atualizado com sucesso.", GrupoUsuarioSerializer(grupo_usuario).data)
 
         return resposta_erro("Erro ao atualizar grupo-usuário.", serializer.errors)
     
@@ -58,8 +48,4 @@ class GrupoUsuarioRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
     def destroy(self, request, *args, **kwargs):
         grupo_usuario = self.get_object()
         grupo_usuario.delete()
-        return resposta_sucesso(
-            "Grupo-Usuário removido com sucesso.",
-            None,
-            status.HTTP_204_NO_CONTENT
-        )
+        return resposta_sucesso("Grupo-Usuário removido com sucesso.", None, status.HTTP_204_NO_CONTENT)

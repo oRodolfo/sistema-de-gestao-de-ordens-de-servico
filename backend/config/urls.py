@@ -25,6 +25,7 @@ from ordem_servico.views import OrdemServicoListCreateView, OrdemServicoRetrieve
 from predio.views import PredioListCreateView, PredioRetrieveUpdateDestroyView
 from authentication.views import TokenObtainPairView
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
+from ativo.views import AtivoListCreateView, AtivoRetrieveUpdateDestroyView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -55,4 +56,8 @@ urlpatterns = [
     path('authentication/token/', TokenObtainPairView.as_view(), name='token-obtain-pair'), #login e geração dos tokens
     path('authentication/token/refresh/', TokenRefreshView.as_view(), name='token-refresh'), #renova o access token usando refresh token
     path('authentication/token/verify/', TokenVerifyView.as_view(), name='token-verify'), #verifica se o token ainda é válido
+
+    path('ativo/', AtivoListCreateView.as_view(), name='ativo-list-create'), # Endpoint para listar e criar ativos, acessível para usuários autenticados.
+    path('ativo/<int:pk>/', AtivoRetrieveUpdateDestroyView.as_view(), name='ativo-detail-view'), # Endpoint para recuperar, atualizar e deletar um ativo específico, acessível para usuários autenticados. A atualização e exclusão são restritas a usuários com a permissão de gerente. 
+    
 ]

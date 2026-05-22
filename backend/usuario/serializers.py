@@ -15,14 +15,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
     # Meta class para configurar o serializador, definindo o modelo e os campos que serão incluídos na serialização/deserialização.
     class Meta:
         model = Usuario
-        fields = [
-            'id_usuario',
-            'nome',
-            'email',
-            'senha',
-            'grupo',
-            'grupo_descricao'
-        ]
+        fields = ['id_usuario', 'nome', 'email', 'senha', 'grupo', 'grupo_descricao']
         read_only_fields = ['id_usuario', 'grupo_descricao']
 
     # Método para obter a descrição do grupo do usuário, buscando o vínculo do usuário com o grupo e retornando a descrição do grupo.
@@ -60,17 +53,10 @@ class UsuarioSerializer(serializers.ModelSerializer):
         grupo = Grupo.objects.get(id_grupo=id_grupo)
 
         # Criamos o usuário com os dados validados e a senha hash, e depois criamos a associação do usuário com o grupo na tabela de relacionamento GrupoUsuario.
-        usuario = Usuario.objects.create(
-            nome=validated_data['nome'],
-            email=validated_data['email'],
-            senha_hash=make_password(senha)
-        )
+        usuario = Usuario.objects.create(nome=validated_data['nome'], email=validated_data['email'], senha_hash=make_password(senha))
         
         # Criamos a associação do usuário com o grupo na tabela de relacionamento GrupoUsuario, garantindo que o usuário seja vinculado ao grupo correto.
-        GrupoUsuario.objects.create(
-            usuario=usuario,
-            grupo=grupo
-        )
+        GrupoUsuario.objects.create(usuario=usuario, grupo=grupo)
 
         return usuario
 

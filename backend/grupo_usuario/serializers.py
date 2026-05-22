@@ -15,18 +15,12 @@ class GrupoUsuarioSerializer(serializers.ModelSerializer):
         id_grupo = data.get("id_grupo")
 
         if not Usuario.objects.filter(id_usuario=id_usuario).exists():
-            raise serializers.ValidationError(
-                {"id_usuario": "Usuário informado não existe."}
-            )
+            raise serializers.ValidationError({"id_usuario": "Usuário informado não existe."})
 
         if not Grupo.objects.filter(id_grupo=id_grupo).exists():
-            raise serializers.ValidationError(
-                {"id_grupo": "Grupo informado não existe."}
-            )
+            raise serializers.ValidationError({"id_grupo": "Grupo informado não existe."})
 
         if GrupoUsuario.objects.filter(id_usuario=id_usuario, id_grupo=id_grupo).exists():
-            raise serializers.ValidationError(
-                "Este usuário já está vinculado a este grupo."
-            )
+            raise serializers.ValidationError("Este usuário já está vinculado a este grupo.")
 
         return data

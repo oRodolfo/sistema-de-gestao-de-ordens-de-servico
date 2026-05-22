@@ -11,7 +11,8 @@ class Grupo(models.Model):
 
     # Configurações adicionais do modelo
     class Meta:
-        managed = False # Indica que o Django não deve criar ou modificar a tabela no banco de dados
+        #managed = False # Indica que o Django não deve criar ou modificar a tabela no banco de dados
+        managed = True
         db_table = 'grupo'
 
     # Método para representar o objeto como uma string

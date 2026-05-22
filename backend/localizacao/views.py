@@ -18,11 +18,7 @@ class LocalizacaoListCreateView(generics.ListCreateAPIView):
 
         if serializer.is_valid():
             localizacao = serializer.save()
-            return resposta_sucesso(
-                "Localização cadastrada com sucesso.",
-                LocalizacaoSerializer(localizacao).data,
-                status.HTTP_201_CREATED
-            )
+            return resposta_sucesso("Localização cadastrada com sucesso.", LocalizacaoSerializer(localizacao).data, status.HTTP_201_CREATED)
 
         return resposta_erro("Erro ao cadastrar localização.", serializer.errors)
 
@@ -35,10 +31,7 @@ class LocalizacaoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView
     # Sobrescreve o método retrieve para recuperar uma localização específica, aplicando as regras de acesso definidas para cada grupo (apenas gerentes podem acessar este endpoint). O método retorna uma resposta de sucesso com os dados da localização encontrada.
     def retrieve(self, request, *args, **kwargs):
         localizacao = self.get_object()
-        return resposta_sucesso(
-            "Localização encontrada com sucesso.",
-            self.get_serializer(localizacao).data
-        )
+        return resposta_sucesso("Localização encontrada com sucesso.", self.get_serializer(localizacao).data)
 
     # Sobrescreve o método update para atualizar uma localização específica, aplicando as regras de acesso definidas para cada grupo (apenas gerentes podem acessar este endpoint). O método também realiza as validações necessárias para os campos da localização e retorna uma resposta de sucesso com os dados da localização atualizada.
     def update(self, request, *args, **kwargs):
@@ -48,10 +41,7 @@ class LocalizacaoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView
 
         if serializer.is_valid():
             localizacao = serializer.save()
-            return resposta_sucesso(
-                "Localização atualizada com sucesso.",
-                LocalizacaoSerializer(localizacao).data
-            )
+            return resposta_sucesso("Localização atualizada com sucesso.", LocalizacaoSerializer(localizacao).data)
 
         return resposta_erro("Erro ao atualizar localização.", serializer.errors)
 
@@ -59,8 +49,4 @@ class LocalizacaoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView
     def destroy(self, request, *args, **kwargs):
         localizacao = self.get_object()
         localizacao.delete()
-        return resposta_sucesso(
-            "Localização removida com sucesso.",
-            None,
-            status.HTTP_204_NO_CONTENT
-        )
+        return resposta_sucesso("Localização removida com sucesso.", None, status.HTTP_204_NO_CONTENT)

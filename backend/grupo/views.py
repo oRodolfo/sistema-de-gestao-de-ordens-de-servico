@@ -19,11 +19,7 @@ class GrupoListCreateView(generics.ListCreateAPIView):
 
         if serializer.is_valid():
             grupo = serializer.save()
-            return resposta_sucesso(
-                "Grupo cadastrado com sucesso.",
-                GrupoSerializer(grupo).data,
-                status.HTTP_201_CREATED
-            )
+            return resposta_sucesso("Grupo cadastrado com sucesso.", GrupoSerializer(grupo).data, status.HTTP_201_CREATED)
 
         return resposta_erro("Erro ao cadastrar grupo.", serializer.errors)
 
@@ -36,10 +32,7 @@ class GrupoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     # Sobrescreve o método retrieve para retornar uma resposta personalizada
     def retrieve(self, request, *args, **kwargs):
         grupo = self.get_object()
-        return resposta_sucesso(
-            "Grupo encontrado com sucesso.",
-            self.get_serializer(grupo).data
-        )
+        return resposta_sucesso("Grupo encontrado com sucesso.", self.get_serializer(grupo).data)
 
     # Sobrescreve o método update para retornar uma resposta personalizada
     def update(self, request, *args, **kwargs):
@@ -49,10 +42,7 @@ class GrupoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
         if serializer.is_valid():
             grupo = serializer.save()
-            return resposta_sucesso(
-                "Grupo atualizado com sucesso.",
-                GrupoSerializer(grupo).data
-            )
+            return resposta_sucesso("Grupo atualizado com sucesso.", GrupoSerializer(grupo).data)
 
         return resposta_erro("Erro ao atualizar grupo.", serializer.errors)
 
@@ -60,8 +50,4 @@ class GrupoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         grupo = self.get_object()
         grupo.delete()
-        return resposta_sucesso(
-            "Grupo removido com sucesso.",
-            None,
-            status.HTTP_204_NO_CONTENT
-        )
+        return resposta_sucesso("Grupo removido com sucesso.", None, status.HTTP_204_NO_CONTENT)

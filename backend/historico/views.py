@@ -18,18 +18,12 @@ class HistoricoListView(generics.ListAPIView):
             return Historico.objects.all().order_by('-data_registro')
 
         if usuario_tem_grupo(usuario, "GESTOR"):
-            return Historico.objects.filter(
-                ordem_servico__gestor=usuario
-            ).order_by('-data_registro')
+            return Historico.objects.filter(ordem_servico__gestor=usuario).order_by('-data_registro')
 
         if usuario_tem_grupo(usuario, "TECNICO"):
-            return Historico.objects.filter(
-                ordem_servico__tecnico=usuario
-            ).order_by('-data_registro')
+            return Historico.objects.filter(ordem_servico__tecnico=usuario).order_by('-data_registro')
 
-        return Historico.objects.filter(
-            ordem_servico__solicitante=usuario
-        ).order_by('-data_registro')
+        return Historico.objects.filter(ordem_servico__solicitante=usuario).order_by('-data_registro')
 
 # View para listar o histórico de uma ordem de serviço específica
 class HistoricoOrdemServicoListView(generics.ListAPIView):
@@ -40,9 +34,7 @@ class HistoricoOrdemServicoListView(generics.ListAPIView):
         usuario = self.request.user
         id_ordem_servico = self.kwargs.get("pk")
 
-        queryset = Historico.objects.filter(
-            ordem_servico_id=id_ordem_servico
-        ).order_by('data_registro')
+        queryset = Historico.objects.filter(ordem_servico_id=id_ordem_servico).order_by('data_registro')
 
         if usuario_tem_grupo(usuario, "GERENTE"):
             return queryset

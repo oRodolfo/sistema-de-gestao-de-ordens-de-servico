@@ -16,9 +16,7 @@ class GrupoSerializer(serializers.ModelSerializer):
         grupos_validos = ["GERENTE", "GESTOR", "TECNICO", "SOLICITANTE"]
 
         if value.upper() not in grupos_validos:
-            raise serializers.ValidationError(
-                "Grupo inválido. Use: GERENTE, GESTOR, TECNICO ou SOLICITANTE."
-            )
+            raise serializers.ValidationError("Grupo inválido. Use: GERENTE, GESTOR, TECNICO ou SOLICITANTE.")
 
         return value.upper()
 

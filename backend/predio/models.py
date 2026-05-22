@@ -7,7 +7,8 @@ class Predio(models.Model):
     nome_predio = models.CharField(max_length=100)
 
     class Meta:
-        managed = False # O Django não irá criar ou modificar a tabela 'predio' no banco de dados, pois ela já existe.
+        #managed = False # O Django não irá criar ou modificar a tabela 'predio' no banco de dados, pois ela já existe.
+        managed = True
         db_table = 'predio'
 
     def __str__(self):

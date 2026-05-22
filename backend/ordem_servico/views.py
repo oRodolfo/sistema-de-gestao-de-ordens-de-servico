@@ -9,6 +9,7 @@ from usuario.models import Usuario
 from utils.responses import resposta_sucesso, resposta_erro
 from utils.permissions import usuario_tem_grupo
 from utils.historico import registrar_historico
+from utils.permissions import IsGerenteOuGestorOuTecnico
 
 # Create your views here.
 # Views para a tabela ordem_servico, utilizando as permissões e regras de negócio definidas para cada tipo de usuário (solicitante, técnico, gestor e gerente).
@@ -38,17 +39,9 @@ class OrdemServicoListCreateView(generics.ListCreateAPIView):
         if serializer.is_valid():
             ordem_servico = serializer.save()
 
-            registrar_historico(
-                ordem_servico,
-                request.user,
-                f"Ordem de serviço aberta por {request.user.nome}. Status inicial: ABERTA."
-            )
+            registrar_historico(ordem_servico, request.user, f"Ordem de serviço aberta por {request.user.nome}. Status inicial: ABERTA.")
 
-            return resposta_sucesso(
-                "Ordem de serviço aberta com sucesso.",
-                OrdemServicoSerializer(ordem_servico).data,
-                status.HTTP_201_CREATED
-            )
+            return resposta_sucesso("Ordem de serviço aberta com sucesso.", OrdemServicoSerializer(ordem_servico).data,  status.HTTP_201_CREATED)
 
         return resposta_erro("Erro ao abrir ordem de serviço.", serializer.errors)
 
@@ -74,10 +67,7 @@ class OrdemServicoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
     # Sobrescreve o método retrieve para retornar uma ordem de serviço específica, aplicando as regras de acesso definidas para cada grupo (solicitante, técnico, gestor e gerente).
     def retrieve(self, request, *args, **kwargs):
         ordem_servico = self.get_object()
-        return resposta_sucesso(
-            "Ordem de serviço encontrada com sucesso.",
-            self.get_serializer(ordem_servico).data
-        )
+        return resposta_sucesso("Ordem de serviço encontrada com sucesso.", self.get_serializer(ordem_servico).data)
 
     # Sobrescreve o método update para atualizar uma ordem de serviço específica, aplicando as regras de acesso e as validações necessárias para cada tipo de usuário (solicitante, técnico, gestor e gerente). O método também registra históricos das alterações realizadas.
     def update(self, request, *args, **kwargs):
@@ -107,11 +97,7 @@ class OrdemServicoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
                 if serializer.is_valid():
                     ordem_servico = serializer.save()
 
-                    registrar_historico(
-                        ordem_servico,
-                        usuario,
-                        f"Dados atualizados por {usuario.nome}: {', '.join(campos_recebidos)}"
-                    )
+                    registrar_historico(ordem_servico, usuario, f"Dados atualizados por {usuario.nome}: {', '.join(campos_recebidos)}")
 
                     return resposta_sucesso("Atualizado com sucesso", serializer.data)
 
@@ -135,11 +121,7 @@ class OrdemServicoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
                     else:
                         ordem_servico = serializer.save()
 
-                    registrar_historico(
-                        ordem_servico,
-                        usuario,
-                        f"Validação do solicitante: {status_anterior} -> {novo_status}"
-                    )
+                    registrar_historico(ordem_servico, usuario, f"Validação do solicitante: {status_anterior} -> {novo_status}")
 
                     return resposta_sucesso("Validação realizada", serializer.data)
 
@@ -156,21 +138,13 @@ class OrdemServicoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
             if campos_recebidos != {"status_ordem_servico"}:
                 return resposta_erro("Técnico só altera status.", None)
 
-            status_permitidos = [
-                "EM_EXECUCAO",
-                "AGUARDANDO_MATERIAL",
-                "AGUARDANDO_TERCEIRO",
-                "CONCLUIDA"
-            ]
+            status_permitidos = ["EM_EXECUCAO", "AGUARDANDO_MATERIAL", "AGUARDANDO_TERCEIRO", "CONCLUIDA"]
 
             if novo_status not in status_permitidos:
                 return resposta_erro("Status inválido.", None)
 
             if novo_status == "EM_EXECUCAO":
-                ocupado = OrdemServico.objects.filter(
-                    tecnico=usuario,
-                    status_ordem_servico="EM_EXECUCAO"
-                ).exclude(id_ordem_servico=ordem_servico.id_ordem_servico).exists()
+                ocupado = OrdemServico.objects.filter(tecnico=usuario, status_ordem_servico="EM_EXECUCAO").exclude(id_ordem_servico=ordem_servico.id_ordem_servico).exists()
 
                 if ocupado:
                     return resposta_erro("Já possui OS em execução.", None)
@@ -201,11 +175,7 @@ class OrdemServicoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
             ordem_servico = serializer.save()
 
             if novo_status and novo_status != status_anterior:
-                registrar_historico(
-                    ordem_servico,
-                    usuario,
-                    f"Status alterado: {status_anterior} -> {novo_status}"
-                )
+                registrar_historico(ordem_servico, usuario, f"Status alterado: {status_anterior} -> {novo_status}")
 
             return resposta_sucesso("Atualizado com sucesso", serializer.data)
 
@@ -225,11 +195,7 @@ class OrdemServicoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
             ordem_servico.dt_conclusao = timezone.now()
             ordem_servico.save()
 
-            registrar_historico(
-                ordem_servico,
-                usuario,
-                f"OS cancelada por {usuario.nome}"
-            )
+            registrar_historico(ordem_servico, usuario, f"OS cancelada por {usuario.nome}")
 
             return resposta_sucesso("Cancelada com sucesso", None)
 
@@ -237,7 +203,7 @@ class OrdemServicoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
 
 # View para atribuir um técnico a uma ordem de serviço específica, aplicando as regras de acesso definidas para cada grupo (apenas gestores e gerentes podem acessar este endpoint). O método também registra um histórico da atribuição do técnico.
 class OrdemServicoAtribuirTecnicoView(APIView):
-    permission_classes = (IsAuthenticated)
+    permission_classes = (IsAuthenticated, IsGerenteOuGestorOuTecnico)
 
     # Sobrescreve o método patch para atribuir um técnico a uma ordem de serviço específica, aplicando as regras de acesso definidas para cada grupo (apenas gestores e gerentes podem acessar este endpoint). O método também registra um histórico da atribuição do técnico.
     def patch(self, request, pk):
@@ -270,10 +236,6 @@ class OrdemServicoAtribuirTecnicoView(APIView):
 
         os.save()
 
-        registrar_historico(
-            os,
-            request.user,
-            f"Técnico atribuído: {tecnico.nome}"
-        )
+        registrar_historico(os, request.user, f"Técnico atribuído: {tecnico.nome}")
 
         return resposta_sucesso("Técnico atribuído", None)

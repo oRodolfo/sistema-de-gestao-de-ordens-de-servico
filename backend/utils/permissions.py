@@ -5,11 +5,7 @@ def usuario_tem_grupo(usuario, nome_grupo):
     if not usuario:
         return False
 
-    return GrupoUsuario.objects.filter(
-        usuario=usuario,
-        grupo__desc_grupo=nome_grupo
-    ).exists()
-
+    return GrupoUsuario.objects.filter(usuario=usuario, grupo__desc_grupo=nome_grupo).exists()
 
 class IsGerente(BasePermission):
     def has_permission(self, request, view):
@@ -29,3 +25,7 @@ class IsTecnico(BasePermission):
 class IsSolicitante(BasePermission):
     def has_permission(self, request, view):
         return request.user and usuario_tem_grupo(request.user, "SOLICITANTE")
+    
+class IsGerenteOuGestorOuTecnico(BasePermission):
+    def has_permission(self, request, view):
+        return (request.user and (usuario_tem_grupo(request.user, "GERENTE") or usuario_tem_grupo(request.user, "GESTOR") or usuario_tem_grupo(request.user, "TECNICO")))

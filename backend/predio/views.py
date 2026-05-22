@@ -17,11 +17,7 @@ class PredioListCreateView(generics.ListCreateAPIView):
 
         if serializer.is_valid():
             predio = serializer.save()
-            return resposta_sucesso(
-                "Prédio cadastrado com sucesso.",
-                PredioSerializer(predio).data,
-                status.HTTP_201_CREATED
-            )
+            return resposta_sucesso("Prédio cadastrado com sucesso.", PredioSerializer(predio).data, status.HTTP_201_CREATED)
 
         return resposta_erro("Erro ao cadastrar prédio.", serializer.errors)
 
@@ -34,10 +30,7 @@ class PredioRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     # Sobrescreve o método retrieve para fornecer uma resposta personalizada ao recuperar um prédio, incluindo mensagens de sucesso ou erro.
     def retrieve(self, request, *args, **kwargs):
         predio = self.get_object()
-        return resposta_sucesso(
-            "Prédio encontrado com sucesso.",
-            self.get_serializer(predio).data
-        )
+        return resposta_sucesso("Prédio encontrado com sucesso.", self.get_serializer(predio).data)
 
     # Sobrescreve o método update para fornecer uma resposta personalizada ao atualizar um prédio, incluindo mensagens de sucesso ou erro. Permite atualizações parciais (PATCH) ou completas (PUT).
     def update(self, request, *args, **kwargs):
@@ -47,10 +40,7 @@ class PredioRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
         if serializer.is_valid():
             predio = serializer.save()
-            return resposta_sucesso(
-                "Prédio atualizado com sucesso.",
-                PredioSerializer(predio).data
-            )
+            return resposta_sucesso("Prédio atualizado com sucesso.", PredioSerializer(predio).data)
 
         return resposta_erro("Erro ao atualizar prédio.", serializer.errors)
 
@@ -58,8 +48,4 @@ class PredioRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         predio = self.get_object()
         predio.delete()
-        return resposta_sucesso(
-            "Prédio removido com sucesso.",
-            None,
-            status.HTTP_204_NO_CONTENT
-        )
+        return resposta_sucesso("Prédio removido com sucesso.", None, status.HTTP_204_NO_CONTENT)
