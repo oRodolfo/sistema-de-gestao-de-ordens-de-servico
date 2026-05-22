@@ -194,7 +194,7 @@ O projeto segue uma arquitetura baseada em **aplicação web com API REST**, org
 - Vite
 
 ### Banco de Dados
-- PostgreSQL
+- Supabase
 
 ### Ferramentas
 - Git / GitHub
