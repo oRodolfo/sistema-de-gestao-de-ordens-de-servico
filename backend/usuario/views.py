@@ -21,7 +21,6 @@ class UsuarioListCreateView(generics.ListCreateAPIView):
     serializer_class = UsuarioSerializer
     permission_classes = (IsAuthenticated, IsGerente)
 
-    # Limitamos os métodos HTTP permitidos para GET e POST, garantindo que essa view seja utilizada apenas para listar e criar usuários, e não para atualizar ou deletar.
     def create(self, request, *args, **kwargs):     
         serializer = self.get_serializer(data=request.data)
 
@@ -35,10 +34,10 @@ class UsuarioListCreateView(generics.ListCreateAPIView):
 # utilizando o serializer UsuarioSerializer e aplicando as permissões de IsAuthenticated e IsGerente para garantir que apenas usuários autenticados
 # e com a permissão de gerente possam acessar essa funcionalidade.
 class UsuarioRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    # A view para recuperar, atualizar e deletar um usuário específico, utilizando o serializer UsuarioSerializer
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
     permission_classes = (IsAuthenticated, IsGerente)
+    http_method_names = ['get', 'delete', 'put', 'patch']
 
     # Limitamos os métodos HTTP permitidos para GET e DELETE, garantindo que essa view seja utilizada apenas para recuperar e deletar usuários, e não para atualizar.
     http_method_names = ('get', 'patch', 'delete')
@@ -80,12 +79,15 @@ class UsuarioRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     # O método destroy é sobrescrito para personalizar a resposta de sucesso ao deletar um usuário, utilizando a função resposta_sucesso para garantir uma resposta consistente em toda a API.
     def destroy(self, request, *args, **kwargs):
         usuario = self.get_object()
-        usuario.delete()
+        
+        # Soft delete por modificação de string: preserva a chave estrangeira nas OS,
+        # mas remove o acesso ao e-mail e marca visualmente como inativo.
+        usuario.nome = f"[DESATIVADO] {usuario.nome}"
+        usuario.email = f"desativado_{usuario.id_usuario}_{usuario.email}"
+        usuario.save()
 
         return resposta_sucesso("Usuário removido com sucesso.", None, status.HTTP_200_OK)
 
-# A view para permitir que o usuário autenticado visualize e atualize seus próprios dados
-# utilizando o serializer UsuarioMeusDadosSerializer e aplicando a permissão de IsAuthenticated para garantir que apenas usuários autenticados possam acessar essa funcionalidade.
 class UsuarioMeusDadosView(APIView):
     permission_classes = (IsAuthenticated,)
     

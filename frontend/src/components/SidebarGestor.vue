@@ -9,15 +9,15 @@
     </div>
 
     <nav class="flex-1 p-4 flex flex-col gap-1">
-      <button @click="router.push('/dashboard-gestor/ordens')"
-        :class="['w-full flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-colors',
-          route.path.includes('ordens') ? 'bg-white/20 text-white font-semibold' : 'text-blue-100 hover:bg-blue-700']">
-        <span>📋</span><span>Ordens de Serviço</span>
-      </button>
       <button @click="router.push('/dashboard-gestor/indicadores')"
         :class="['w-full flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-colors',
           route.path.includes('indicadores') ? 'bg-white/20 text-white font-semibold' : 'text-blue-100 hover:bg-blue-700']">
         <span>📊</span><span>Indicadores</span>
+      </button>
+      <button @click="router.push('/dashboard-gestor/ordens')"
+        :class="['w-full flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-colors',
+          route.path.includes('ordens') ? 'bg-white/20 text-white font-semibold' : 'text-blue-100 hover:bg-blue-700']">
+        <span>📋</span><span>Ordens de Serviço</span>
       </button>
     </nav>
 

@@ -1,12 +1,10 @@
 <template>
   <div class="p-8">
 
-    <!-- Cabeçalho -->
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold text-gray-800">Ordens de Serviço</h1>
     </div>
 
-    <!-- Filtros de status -->
     <div class="flex gap-2 mb-6 flex-wrap">
       <button
         v-for="status in statusOpcoes"
@@ -24,7 +22,6 @@
       </button>
     </div>
 
-    <!-- Tabela -->
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
       <table class="w-full">
         <thead class="bg-gray-50 border-b border-gray-200">
@@ -76,7 +73,6 @@
       </table>
     </div>
 
-    <!-- Modal de Detalhe -->
     <div
       v-if="mostrarModalDetalhe && ordemSelecionada"
       @click.self="mostrarModalDetalhe = false"
@@ -84,7 +80,6 @@
     >
       <div class="bg-white rounded-xl p-8 w-full max-w-lg shadow-xl">
 
-        <!-- Cabeçalho -->
         <div class="flex justify-between items-start mb-6">
           <div>
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Ordem de Serviço</p>
@@ -93,7 +88,6 @@
           <button @click="mostrarModalDetalhe = false" class="text-gray-400 hover:text-gray-600 cursor-pointer text-xl">✕</button>
         </div>
 
-        <!-- Badges -->
         <div class="flex gap-2 mb-6">
           <span :class="['px-3 py-1 rounded-full text-xs font-semibold', corStatus(ordemSelecionada.status_ordem_servico)]">
             {{ labelStatus(ordemSelecionada.status_ordem_servico) }}
@@ -103,11 +97,10 @@
           </span>
         </div>
 
-        <!-- Informações -->
         <div class="grid grid-cols-2 gap-4 mb-6">
           <div>
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Local</p>
-            <p class="text-sm text-gray-800">{{ ordemSelecionada.localizacao }}</p>
+            <p class="text-sm text-gray-800">{{ ordemSelecionada.localizacao_nome || '—' }}</p>
           </div>
           <div>
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Data de Abertura</p>
@@ -115,15 +108,14 @@
           </div>
           <div>
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Solicitante</p>
-            <p class="text-sm text-gray-800">{{ ordemSelecionada.solicitante }}</p>
+            <p class="text-sm text-gray-800">{{ ordemSelecionada.solicitante_nome || '—' }}</p>
           </div>
           <div>
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Técnico</p>
-            <p class="text-sm text-gray-800">{{ ordemSelecionada.tecnico || 'Não atribuído' }}</p>
+            <p class="text-sm text-gray-800">{{ ordemSelecionada.tecnico_nome || 'Não atribuído' }}</p>
           </div>
         </div>
 
-        <!-- Descrição -->
         <div>
           <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Descrição do Serviço</p>
           <p class="text-sm text-gray-700 bg-gray-50 rounded-lg p-4 leading-relaxed">
@@ -131,7 +123,6 @@
           </p>
         </div>
 
-        <!-- Fechar -->
         <div class="mt-6 flex justify-end">
           <button
             @click="mostrarModalDetalhe = false"
@@ -148,11 +139,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import api from '@/services/api'
 
 const filtroStatus = ref('')
 const ordemSelecionada = ref<any>(null)
 const mostrarModalDetalhe = ref(false)
+const carregando = ref(false)
 
 const statusOpcoes = [
   { value: '', label: 'Todas' },
@@ -166,68 +159,19 @@ const statusOpcoes = [
   { value: 'CANCELADA', label: 'Canceladas' },
 ]
 
-const ordens = ref([
-  {
-    id_ordem_servico: 1,
-    localizacao: 'Bloco A - Sala 101',
-    status_ordem_servico: 'ABERTA',
-    prioridade_urgencia: 'SIM',
-    dt_abertura: '2026-04-28T10:30:00',
-    descricao_servico: 'Ar condicionado com defeito, não resfria o ambiente.',
-    solicitante: 'João Silva',
-    tecnico: null,
-  },
-  {
-    id_ordem_servico: 2,
-    localizacao: 'Biblioteca - Térreo',
-    status_ordem_servico: 'EM_EXECUCAO',
-    prioridade_urgencia: 'NAO',
-    dt_abertura: '2026-04-27T08:15:00',
-    descricao_servico: 'Troca de lâmpadas queimadas no corredor principal.',
-    solicitante: 'Maria Souza',
-    tecnico: 'Carlos Técnico',
-  },
-  {
-    id_ordem_servico: 3,
-    localizacao: 'Laboratório 3 - Bloco B',
-    status_ordem_servico: 'AGUARDANDO_MATERIAL',
-    prioridade_urgencia: 'SIM',
-    dt_abertura: '2026-04-25T14:00:00',
-    descricao_servico: 'Tomadas sem energia, necessário trocar disjuntor.',
-    solicitante: 'Pedro Costa',
-    tecnico: 'Carlos Técnico',
-  },
-  {
-    id_ordem_servico: 4,
-    localizacao: 'Secretaria - Bloco C',
-    status_ordem_servico: 'CONCLUIDA',
-    prioridade_urgencia: 'NAO',
-    dt_abertura: '2026-04-20T09:00:00',
-    descricao_servico: 'Reparo na fechadura da porta principal.',
-    solicitante: 'Ana Lima',
-    tecnico: 'Roberto Técnico',
-  },
-  {
-    id_ordem_servico: 5,
-    localizacao: 'Cantina - Térreo',
-    status_ordem_servico: 'APROVADA',
-    prioridade_urgencia: 'NAO',
-    dt_abertura: '2026-04-29T11:45:00',
-    descricao_servico: 'Vazamento de água na pia da cozinha.',
-    solicitante: 'Lucas Mendes',
-    tecnico: null,
-  },
-  {
-    id_ordem_servico: 6,
-    localizacao: 'Bloco D - Corredor',
-    status_ordem_servico: 'CANCELADA',
-    prioridade_urgencia: 'NAO',
-    dt_abertura: '2026-04-15T07:00:00',
-    descricao_servico: 'Pintura do corredor solicitada erroneamente.',
-    solicitante: 'Fernanda Lima',
-    tecnico: null,
-  },
-])
+const ordens = ref<any[]>([])
+
+onMounted(async () => {
+  carregando.value = true
+  try {
+    const resposta = await api.get('/ordem-servico/')
+    ordens.value = resposta.data
+  } catch (e) {
+    console.error('Erro ao carregar ordens:', e)
+  } finally {
+    carregando.value = false
+  }
+})
 
 const ordensFiltradas = computed(() => {
   if (!filtroStatus.value) return ordens.value
