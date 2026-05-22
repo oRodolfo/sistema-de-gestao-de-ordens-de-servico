@@ -10,8 +10,7 @@ class Localizacao(models.Model):
     desc_localizacao = models.CharField(max_length=150)
 
     class Meta:
-        #managed = False # Indica que o Django não deve gerenciar a criação da tabela no banco de dados
-        managed = True
+        managed = False # Indica que o Django não deve gerenciar a criação da tabela no banco de dados
         db_table = 'localizacao'
 
     def __str__(self):

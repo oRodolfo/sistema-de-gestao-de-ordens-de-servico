@@ -15,8 +15,7 @@ class Historico(models.Model):
     desc_historico = models.CharField(max_length=255) # Campo para armazenar uma descrição do histórico
 
     class Meta:
-        #managed = False # Indica que o Django não deve gerenciar a criação da tabela no banco de dados
-        managed = True
+        managed = False # Indica que o Django não deve gerenciar a criação da tabela no banco de dados
         db_table = 'historico'
 
     def __str__(self):

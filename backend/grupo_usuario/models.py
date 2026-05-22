@@ -11,7 +11,6 @@ class GrupoUsuario(models.Model):
     grupo = models.ForeignKey(Grupo, on_delete=models.CASCADE, db_column='id_grupo')
 
     class Meta:
-        #managed = False
-        managed = True
+        managed = False
         db_table = 'grupo_usuario'
         unique_together = (('usuario', 'grupo'),)

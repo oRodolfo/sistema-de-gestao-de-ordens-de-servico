@@ -21,8 +21,7 @@ class Ativo(models.Model):
     dt_proxima_preventiva = models.DateField(null=True, blank=True)
 
     class Meta:
-        #managed = False
-        managed = True
+        managed = False
         db_table = 'ativo'
 
     def __str__(self):
