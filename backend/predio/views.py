@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 class PredioListCreateView(generics.ListCreateAPIView):
     queryset = Predio.objects.all()
     serializer_class = PredioSerializer
-    permission_classes = (IsAuthenticated,)
+    #permission_classes = (IsAuthenticated,)
 
     # Sobrescreve o método create para fornecer uma resposta personalizada ao criar um prédio, incluindo mensagens de sucesso ou erro.
     def create(self, request, *args, **kwargs):
@@ -25,7 +25,7 @@ class PredioListCreateView(generics.ListCreateAPIView):
 class PredioRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Predio.objects.all()
     serializer_class = PredioSerializer
-    permission_classes = (IsAuthenticated,)
+    #permission_classes = (IsAuthenticated,)
 
     # Sobrescreve o método retrieve para fornecer uma resposta personalizada ao recuperar um prédio, incluindo mensagens de sucesso ou erro.
     def retrieve(self, request, *args, **kwargs):

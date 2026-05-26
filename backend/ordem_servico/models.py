@@ -27,7 +27,8 @@ class OrdemServico(models.Model):
     descricao_servico = models.CharField(max_length=255) # campo para armazenar a descrição do serviço da ordem de serviço
 
     class Meta:
-        managed = False # Indica que o Django não deve gerenciar a criação da tabela no banco de dados
+        #managed = False # Indica que o Django não deve gerenciar a criação da tabela no banco de dados
+        managed = True # Indica que o Django deve criar e gerenciar a tabela no banco de dados
         db_table = 'ordem_servico'
 
     def __str__(self):
