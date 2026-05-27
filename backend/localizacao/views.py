@@ -2,7 +2,7 @@ from rest_framework import generics, status
 from localizacao.models import Localizacao
 from localizacao.serializers import LocalizacaoSerializer
 from utils.responses import resposta_sucesso, resposta_erro
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from utils.permissions import IsGerente
 # Create your views here.
 
@@ -10,9 +10,21 @@ from utils.permissions import IsGerente
 class LocalizacaoListCreateView(generics.ListCreateAPIView):
     queryset = Localizacao.objects.all()
     serializer_class = LocalizacaoSerializer
-    permission_classes = (IsAuthenticated, IsGerente)
 
-    # Sobrescreve o método create para criar uma nova localização, aplicando as regras de acesso definidas para cada grupo (apenas gerentes podem acessar este endpoint). O método também realiza as validações necessárias para os campos da localização.
+    # Gerencia dinamicamente: GET (listar) é público, POST (criar) exige Gerente logado
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAuthenticated(), IsGerente()]
+        return [AllowAny()]
+
+    # Sobrescreve o método list para envelopar no padrão de resposta do projeto (usando .dados ou .data)
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        # Se o seu front-end espera a chave 'dados', usamos ela aqui
+        return resposta_sucesso("Localizações listadas com sucesso.", serializer.data)
+
+    # Sobrescreve o método create para criar uma nova localização (apenas gerentes)
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 

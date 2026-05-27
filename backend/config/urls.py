@@ -21,7 +21,7 @@ from grupo.views import GrupoListCreateView, GrupoRetrieveUpdateDestroyView
 from grupo_usuario.views import GrupoUsuarioListCreateView, GrupoUsuarioRetrieveUpdateDestroyView
 from historico.views import HistoricoListView, HistoricoOrdemServicoListView
 from localizacao.views import LocalizacaoListCreateView, LocalizacaoRetrieveUpdateDestroyView
-from ordem_servico.views import OrdemServicoListCreateView, OrdemServicoRetrieveUpdateDestroyView, OrdemServicoAtribuirTecnicoView
+from ordem_servico.views import OrdemServicoListCreateView, OrdemServicoRetrieveUpdateDestroyView, OrdemServicoAtribuirTecnicoView, DashboardIndicadoresView
 from predio.views import PredioListCreateView, PredioRetrieveUpdateDestroyView
 from authentication.views import TokenObtainPairView
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
@@ -49,6 +49,7 @@ urlpatterns = [
     path('ordem-servico/', OrdemServicoListCreateView.as_view(), name='ordem-servico-list-create'), # Endpoint para listar e criar ordens de serviço, acessível para usuários autenticados.
     path('ordem-servico/<int:pk>/', OrdemServicoRetrieveUpdateDestroyView.as_view(), name='ordem-servico-detail-view'), # Endpoint para recuperar, atualizar e deletar uma ordem de serviço específica, acessível para usuários autenticados. A atualização e exclusão são restritas ao solicitante da ordem ou a usuários com a permissão de gerente.
     path('ordem-servico/<int:pk>/atribuir-tecnico/', OrdemServicoAtribuirTecnicoView.as_view(), name='ordem-servico-atribuir-tecnico'), # Endpoint para atribuir um técnico a uma ordem de serviço específica, acessível apenas para usuários autenticados e com a permissão de gerente.
+    path('ordem-servico/dashboard/indicadores/', DashboardIndicadoresView.as_view(), name='dashboard-indicadores'),
 
     path('predio/', PredioListCreateView.as_view(), name='predio-list-create'), # Endpoint para listar e criar prédios, acessível para usuários autenticados.
     path('predio/<int:pk>/', PredioRetrieveUpdateDestroyView.as_view(), name='predio-detail-view'), # Endpoint para recuperar, atualizar e deletar um prédio específico, acessível para usuários autenticados. A atualização e exclusão são restritas a usuários com a permissão de gerente.
