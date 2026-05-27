@@ -22,6 +22,7 @@ class Ativo(models.Model):
 
     class Meta:
         managed = False
+        #managed = True # Indica que o Django deve criar e gerenciar a tabela no banco de dados
         db_table = 'ativo'
 
     def __str__(self):

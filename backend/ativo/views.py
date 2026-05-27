@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from ativo.models import Ativo
 from ativo.serializers import AtivoSerializer
 from utils.responses import resposta_sucesso, resposta_erro
-from utils.permissions import IsGerenteOuGestorOuTecnico
+from utils.permissions import IsGerente, IsGestor,IsGerenteOuGestorOuTecnico
 
 # Create your views here.
 # As views AtivoListCreateView e AtivoRetrieveUpdateDestroyView são responsáveis por lidar com as operações de listagem, criação, recuperação, atualização e exclusão de ativos. Elas utilizam os serializers para validar e transformar os dados, e as permissões para garantir que apenas usuários autorizados possam realizar certas ações. As respostas são formatadas usando funções de resposta personalizada para manter a consistência na comunicação com o cliente.
@@ -13,11 +13,11 @@ class AtivoListCreateView(generics.ListCreateAPIView):
     serializer_class = AtivoSerializer
 
     # O método get_permissions é sobrescrito para retornar diferentes conjuntos de permissões dependendo do método HTTP da requisição. Para requisições POST, que correspondem à criação de um novo ativo, são exigidas as permissões IsAuthenticated e IsGerenteOuGestorOuTecnico, garantindo que apenas usuários autenticados com os papéis de gerente, gestor ou técnico possam criar ativos. Para outros métodos, como GET, apenas a permissão IsAuthenticated é exigida, permitindo que qualquer usuário autenticado possa listar os ativos.
-    def get_permissions(self):
-        if self.request.method == 'POST':
-            return [IsAuthenticated(), IsGerenteOuGestorOuTecnico()]
+    #def get_permissions(self):
+        #if self.request.method == 'POST':
+            #return [IsAuthenticated(), IsGerenteOuGestorOuTecnico()]
 
-        return [IsAuthenticated()]
+        #return [IsAuthenticated()]
 
     def get_queryset(self):
         queryset = Ativo.objects.all().order_by('id_ativo')
@@ -56,11 +56,11 @@ class AtivoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AtivoSerializer
 
     # O método get_permissions é sobrescrito para retornar diferentes conjuntos de permissões dependendo do método HTTP da requisição. Para requisições PATCH, PUT e DELETE, que correspondem à atualização e exclusão de um ativo, são exigidas as permissões IsAuthenticated e IsGerenteOuGestorOuTecnico, garantindo que apenas usuários autenticados com os papéis de gerente, gestor ou técnico possam atualizar ou excluir ativos. Para outros métodos, como GET, apenas a permissão IsAuthenticated é exigida, permitindo que qualquer usuário autenticado possa recuperar os detalhes de um ativo específico.
-    def get_permissions(self):
-        if self.request.method in ['PATCH', 'PUT', 'DELETE']:
-            return [IsAuthenticated(), IsGerenteOuGestorOuTecnico()]
+    #def get_permissions(self):
+        #if self.request.method in ['PATCH', 'PUT', 'DELETE']:
+            #return [IsAuthenticated(), IsGerenteOuGestorOuTecnico()]
 
-        return [IsAuthenticated()]
+        #return [IsAuthenticated()]
 
     # Sobrescreve o método retrieve para retornar uma resposta personalizada ao recuperar um ativo específico, utilizando a função resposta_sucesso para formatar a resposta de maneira consistente.
     def retrieve(self, request, *args, **kwargs):

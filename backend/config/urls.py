@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from usuario.views import UsuarioListCreateView, UsuarioRetrieveUpdateDestroyView, UsuarioMeusDadosView
+from usuario.views import UsuarioListCreateView, UsuarioRetrieveUpdateDestroyView, UsuarioMeusDadosView, ConfirmarEmailView
 from grupo.views import GrupoListCreateView, GrupoRetrieveUpdateDestroyView
 from grupo_usuario.views import GrupoUsuarioListCreateView, GrupoUsuarioRetrieveUpdateDestroyView
 from historico.views import HistoricoListView, HistoricoOrdemServicoListView
@@ -33,6 +33,7 @@ urlpatterns = [
     path('usuario/meus-dados/', UsuarioMeusDadosView.as_view(), name='usuario-meus-dados-view'), # Endpoint para o usuário autenticado visualizar e atualizar seus próprios dados
     path('usuario/', UsuarioListCreateView.as_view(), name='usuario-list-create'), # Endpoint para listar e criar usuários, acessível apenas para usuários autenticados e com a permissão de gerente
     path('usuario/<int:pk>/', UsuarioRetrieveUpdateDestroyView.as_view(), name='usuario-detail-view'), # Endpoint para recuperar, atualizar e deletar um usuário específico, acessível apenas para usuários autenticados e com a permissão de gerente
+    path('usuario/confirmar-email/<str:token>/', ConfirmarEmailView.as_view(), name='usuario-confirmar-email'), # Endpoint para confirmar o e-mail do usuário utilizando o token de confirmação, acessível para qualquer pessoa que tenha o link de confirmação (geralmente enviado por e-mail após o cadastro).
 
     path('grupo/', GrupoListCreateView.as_view(), name='grupo-list-create'), # Endpoint para listar e criar grupos, acessível apenas para usuários autenticados e com a permissão de gerente
     path('grupo/<int:pk>/', GrupoRetrieveUpdateDestroyView.as_view(), name='grupo-detail-view'), # Endpoint para recuperar, atualizar e deletar um grupo específico, acessível apenas para usuários autenticados e com a permissão de gerente

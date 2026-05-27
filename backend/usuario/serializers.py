@@ -2,6 +2,11 @@ from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
 
+import uuid
+from datetime import timedelta
+from django.utils import timezone
+from django.conf import settings
+
 from usuario.models import Usuario
 from grupo.models import Grupo
 from grupo_usuario.models import GrupoUsuario
@@ -33,31 +38,60 @@ class UsuarioSerializer(serializers.ModelSerializer):
         return value
 
     def validate_email(self, value):
-        if Usuario.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Já existe um usuário com este e-mail.")
-        return value
+        email = value.strip().lower()
 
-    def validate_grupo(self, value):
-        if not Grupo.objects.filter(id_grupo=value).exists():
-            raise serializers.ValidationError("Grupo informado não existe.")
-        return value
+        if not email.endswith(settings.DOMINIO_EMAIL_PERMITIDO):
+            raise serializers.ValidationError(f"O e-mail deve terminar com {settings.DOMINIO_EMAIL_PERMITIDO}.")
+
+        usuario_existente = Usuario.objects.filter(email=email).first()
+
+        if usuario_existente and usuario_existente.email_confirmado:
+            raise serializers.ValidationError("Já existe um usuário ativo com este e-mail.")
+
+        return email
 
     # Método para criar um novo usuário, garantindo que a criação do usuário e a associação com o grupo sejam feitas todas juntas, ou seja, se algo der errado, nenhuma das operações será aplicada ao banco de dados.
     @transaction.atomic
     def create(self, validated_data):
-        
-        # Extraímos a senha e o ID do grupo dos dados validados, pois eles não fazem parte diretamente do modelo Usuario, mas são necessários para criar o usuário e associá-lo ao grupo.
         senha = validated_data.pop('senha')
         id_grupo = validated_data.pop('grupo')
 
         grupo = Grupo.objects.get(id_grupo=id_grupo)
+        email = validated_data['email']
+        token = str(uuid.uuid4())
 
-        # Criamos o usuário com os dados validados e a senha hash, e depois criamos a associação do usuário com o grupo na tabela de relacionamento GrupoUsuario.
-        usuario = Usuario.objects.create(nome=validated_data['nome'], email=validated_data['email'], senha_hash=make_password(senha))
-        
-        # Criamos a associação do usuário com o grupo na tabela de relacionamento GrupoUsuario, garantindo que o usuário seja vinculado ao grupo correto.
+        usuario_existente = Usuario.objects.filter(email=email).first()
+
+        if usuario_existente and not usuario_existente.email_confirmado:
+            usuario = usuario_existente
+        else:
+            usuario = None
+
+        if usuario:
+            usuario.nome = validated_data['nome']
+            usuario.senha_hash = make_password(senha)
+            usuario.token_confirmacao_email = token
+            usuario.dt_expiracao_token = timezone.now() + timedelta(hours=24)
+            usuario.save()
+
+            GrupoUsuario.objects.update_or_create(
+                usuario=usuario,
+                defaults={'grupo': grupo}
+            )
+
+        else:
+            usuario = Usuario.objects.create(
+            nome=validated_data['nome'],
+            email=email,
+            senha_hash=make_password(senha),
+            email_confirmado=False,
+            token_confirmacao_email=token,
+            dt_expiracao_token=timezone.now() + timedelta(hours=24)
+        )
+
         GrupoUsuario.objects.create(usuario=usuario, grupo=grupo)
 
+        usuario.senha_temporaria = senha
         return usuario
 
 # Serializador para o endpoint "meus-dados", utilizado para permitir que o usuário autenticado visualize e atualize seus próprios dados.
@@ -77,12 +111,16 @@ class UsuarioMeusDadosSerializer(serializers.ModelSerializer):
         return value
 
     def validate_email(self, value):
+        email = value.strip().lower()
         usuario_logado = self.instance
 
-        if Usuario.objects.exclude(id_usuario=usuario_logado.id_usuario).filter(email=value).exists():
+        if not email.endswith(settings.DOMINIO_EMAIL_PERMITIDO):
+            raise serializers.ValidationError(f"O e-mail deve terminar com {settings.DOMINIO_EMAIL_PERMITIDO}.")
+
+        if Usuario.objects.exclude(id_usuario=usuario_logado.id_usuario).filter(email=email).exists():
             raise serializers.ValidationError("Já existe um usuário com este e-mail.")
 
-        return value
+        return email
 
     # Método para atualizar os dados do usuário, permitindo que o usuário atualize seu nome, email e senha (se fornecida), garantindo que a senha seja armazenada como hash.
     def update(self, instance, validated_data):

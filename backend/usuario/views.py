@@ -10,6 +10,11 @@ from grupo.models import Grupo
 from grupo_usuario.models import GrupoUsuario
 from django.contrib.auth.hashers import make_password
 
+from django.core.mail import send_mail
+from django.utils import timezone
+
+from django.conf import settings
+
 # Create your views here.
 # As views abaixo utilizam os serializers definidos em serializers.py para criar, listar, atualizar e deletar usuários, 
 # além de permitir que o usuário autenticado visualize e atualize seus próprios dados. 
@@ -19,28 +24,48 @@ class UsuarioListCreateView(generics.ListCreateAPIView):
     # aplicando as permissões de IsAuthenticated e IsGerente para garantir que apenas usuários autenticados e com a permissão de gerente possam acessar essa funcionalidade.
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
-    permission_classes = (IsAuthenticated, IsGerente)
+    #permission_classes = (IsAuthenticated, IsGerente)
+    
+    def create(self, request, *args, **kwargs):    
+        Usuario.objects.filter(email_confirmado=False, dt_expiracao_token__lt=timezone.now()).delete()
 
-    def create(self, request, *args, **kwargs):     
         serializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
             usuario = serializer.save()
-            return resposta_sucesso("Usuário cadastrado com sucesso.", UsuarioSerializer(usuario).data, status.HTTP_201_CREATED)
+
+            link_confirmacao = (f"{settings.BASE_URL}/usuario/confirmar-email/" f"{usuario.token_confirmacao_email}/")
+
+            send_mail(
+                subject="Confirmação de cadastro - TechOrder",
+                message=(
+                    f"Olá, {usuario.nome}!\n\n"
+                    f"Seu cadastro no sistema TechOrder foi criado com sucesso.\n\n"
+                    f"Confirme seu e-mail acessando o link abaixo:\n"
+                    f"{link_confirmacao}\n\n"
+                    f"Após confirmar, você poderá acessar o sistema com:\n"
+                    f"E-mail: {usuario.email}\n"
+                    f"Senha: {usuario.senha_temporaria}\n\n"
+                    f"Este link expira em 24 horas."
+                ),
+                from_email=None,
+                recipient_list=[usuario.email],
+                fail_silently=False,
+            )
+
+            return resposta_sucesso("Usuário cadastrado com sucesso. E-mail de confirmação enviado.", UsuarioSerializer(usuario).data, status.HTTP_201_CREATED)
 
         return resposta_erro("Erro ao cadastrar usuário.", serializer.errors)
-
+    
 # A view para recuperar, atualizar e deletar um usuário específico
 # utilizando o serializer UsuarioSerializer e aplicando as permissões de IsAuthenticated e IsGerente para garantir que apenas usuários autenticados
 # e com a permissão de gerente possam acessar essa funcionalidade.
 class UsuarioRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
-    permission_classes = (IsAuthenticated, IsGerente)
-    http_method_names = ['get', 'delete', 'put', 'patch']
+    #permission_classes = (IsAuthenticated, IsGerente)
 
-    # Limitamos os métodos HTTP permitidos para GET e DELETE, garantindo que essa view seja utilizada apenas para recuperar e deletar usuários, e não para atualizar.
-    http_method_names = ('get', 'patch', 'delete')
+    http_method_names = ['get', 'delete', 'put', 'patch']
 
     # Sobrescrevemos os métodos retrieve e destroy para personalizar as respostas de sucesso
     # utilizando as funções resposta_sucesso e resposta_erro para garantir uma resposta consistente em toda a API.
@@ -105,3 +130,24 @@ class UsuarioMeusDadosView(APIView):
             return resposta_sucesso("Dados atualizados com sucesso.", UsuarioMeusDadosSerializer(usuario).data)
 
         return resposta_erro("Erro ao atualizar seus dados.", serializer.errors)
+    
+
+class ConfirmarEmailView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, token):
+        try:
+            usuario = Usuario.objects.get(token_confirmacao_email=token)
+        except Usuario.DoesNotExist:
+            return resposta_erro("Token de confirmação inválido.", None, status.HTTP_400_BAD_REQUEST)
+
+        if usuario.dt_expiracao_token and usuario.dt_expiracao_token < timezone.now():
+            return resposta_erro("Token de confirmação expirado.", None, status.HTTP_400_BAD_REQUEST)
+
+        usuario.email_confirmado = True
+        usuario.token_confirmacao_email = None
+        usuario.dt_expiracao_token = None
+        usuario.save()
+
+        return resposta_sucesso("E-mail confirmado com sucesso. Agora o usuário pode acessar o sistema.", None)

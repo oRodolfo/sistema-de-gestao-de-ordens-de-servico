@@ -18,47 +18,33 @@ class TokenObtainPairView(APIView):
     parser_classes = [JSONParser]
 
     def post(self, request):
-        # Este print vai mostrar exatamente o que está a chegar no terminal
         print(f"DADOS RECEBIDOS PELO DJANGO: {request.data}")
 
-        # --- AQUI ESTÁ A MUDANÇA PRINCIPAL ---
         email = request.data.get('email')
         
         # Tenta pegar 'senha'. Se não encontrar (por causa do cache do Vue), pega 'password'
         senha = request.data.get('senha') or request.data.get('password')
-        # -------------------------------------
 
         # Validando se email e senha foram fornecidos
         if not email or not senha:
-            return Response(
-                {'erro': 'E-mail e senha são obrigatórios.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({'erro': 'E-mail e senha são obrigatórios.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             usuario = Usuario.objects.get(email=email)
         except Usuario.DoesNotExist:
-            return Response(
-                {'erro': 'Credenciais inválidas.'},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+            return Response({'erro': 'Credenciais inválidas.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        if not usuario.email_confirmado:
+            return Response({'erro': 'E-mail ainda não confirmado. Verifique sua caixa de entrada.'}, status=status.HTTP_403_FORBIDDEN)
 
         # Verificando a senha (usando o campo senha_hash do seu modelo)
         if not check_password(senha, usuario.senha_hash):
-            return Response(
-                {'erro': 'Credenciais inválidas.'},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+            return Response({'erro': 'Credenciais inválidas.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         # Buscando os grupos do utilizador
-        vinculos = GrupoUsuario.objects.filter(
-            usuario=usuario
-        ).select_related('grupo')
+        vinculos = GrupoUsuario.objects.filter(usuario=usuario).select_related('grupo')
 
-        grupos_usuario = [
-            vinculo.grupo.desc_grupo
-            for vinculo in vinculos
-        ]
+        grupos_usuario = [vinculo.grupo.desc_grupo for vinculo in vinculos]
 
         # Gerando os tokens (Refresh e Access)
         refresh = RefreshToken()
@@ -74,13 +60,4 @@ class TokenObtainPairView(APIView):
         access['grupos'] = grupos_usuario
 
         # Resposta final para o Vue
-        return Response({
-            'refresh': str(refresh),
-            'access': str(access),
-            'usuario': {
-                'id_usuario': usuario.id_usuario,
-                'nome': usuario.nome,
-                'email': usuario.email,
-                'grupos': grupos_usuario
-            }
-        })
+        return Response({'refresh': str(refresh), 'access': str(access), 'usuario': {'id_usuario': usuario.id_usuario, 'nome': usuario.nome, 'email': usuario.email, 'grupos': grupos_usuario}})

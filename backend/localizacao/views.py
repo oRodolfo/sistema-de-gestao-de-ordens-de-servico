@@ -38,7 +38,7 @@ class LocalizacaoListCreateView(generics.ListCreateAPIView):
 class LocalizacaoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Localizacao.objects.all()
     serializer_class = LocalizacaoSerializer
-    permission_classes = (IsAuthenticated, IsGerente)
+    #permission_classes = (IsAuthenticated, IsGerente)
 
     # Sobrescreve o método retrieve para recuperar uma localização específica, aplicando as regras de acesso definidas para cada grupo (apenas gerentes podem acessar este endpoint). O método retorna uma resposta de sucesso com os dados da localização encontrada.
     def retrieve(self, request, *args, **kwargs):

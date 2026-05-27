@@ -35,7 +35,7 @@ class PredioListCreateView(generics.ListCreateAPIView):
 class PredioRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Predio.objects.all()
     serializer_class = PredioSerializer
-    permission_classes = (IsAuthenticated,)
+    #permission_classes = (IsAuthenticated,)
 
     # Sobrescreve o método retrieve para fornecer uma resposta personalizada ao recuperar um prédio
     def retrieve(self, request, *args, **kwargs):

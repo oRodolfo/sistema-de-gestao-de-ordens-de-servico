@@ -3,17 +3,8 @@ from usuario.models import Usuario
 from grupo.models import Grupo
 
 class GrupoUsuario(models.Model):
-    usuario = models.ForeignKey(
-        Usuario,
-        on_delete=models.CASCADE,
-        db_column='id_usuario',
-        primary_key=True  # ← usa id_usuario como PK
-    )
-    grupo = models.ForeignKey(
-        Grupo,
-        on_delete=models.CASCADE,
-        db_column='id_grupo'
-    )
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, db_column='id_usuario', primary_key=True)
+    grupo = models.ForeignKey(Grupo,on_delete=models.CASCADE, db_column='id_grupo')
 
     class Meta:
         managed = False
