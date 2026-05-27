@@ -22,6 +22,9 @@ class OrdemServicoListCreateView(generics.ListCreateAPIView):
             return [AllowAny()]
         return [IsAuthenticated()]
 
+    #permission_classes = (IsAuthenticated,)
+
+    # Sobrescreve o método get_queryset para retornar as ordens de serviço de acordo com o tipo do usuário autenticado, aplicando as regras de acesso definidas para cada grupo (solicitante, técnico, gestor e gerente).
     def get_queryset(self):
         usuario = self.request.user
 
