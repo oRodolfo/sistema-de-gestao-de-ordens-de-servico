@@ -7,8 +7,8 @@ class GrupoUsuario(models.Model):
     grupo = models.ForeignKey(Grupo,on_delete=models.CASCADE, db_column='id_grupo')
 
     class Meta:
-        #managed = False
-        managed = True # Indica que o Django deve criar e gerenciar a tabela no banco de dados
+        managed = False
+        #managed = True # Indica que o Django deve criar e gerenciar a tabela no banco de dados
         db_table = 'grupo_usuario'
         unique_together = (('usuario', 'grupo'),)
 

@@ -21,8 +21,8 @@ class Ativo(models.Model):
     dt_proxima_preventiva = models.DateField(null=True, blank=True)
 
     class Meta:
-        #managed = False
-        managed = True # Indica que o Django deve criar e gerenciar a tabela no banco de dados
+        managed = False
+        #managed = True # Indica que o Django deve criar e gerenciar a tabela no banco de dados
         db_table = 'ativo'
 
     def __str__(self):
