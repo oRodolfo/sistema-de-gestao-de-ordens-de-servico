@@ -48,24 +48,16 @@ class OrdemServicoSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        # Captura o request enviado pelo contexto da view
         request = self.context.get('request')
-        
-        # Verifica de forma segura se o usuário está autenticado
-        if request and request.user and request.user.is_authenticated:
-            usuario_solicitante = request.user
-        else:
-            # Caso o chamado seja aberto de forma pública/anônima
-            usuario_solicitante = None 
 
-        # Remove o solicitante de dentro do validated_data caso ele tenha sido injetado pela view, evitando duplicidade
-        validated_data.pop('solicitante', None)
+        validated_data.pop('status_ordem_servico', None)
+        validated_data.pop('tipo_manutencao', None)
 
-        # Cria a Ordem de Serviço passando o usuário correto (ou None se for anônimo)
         return OrdemServico.objects.create(
-            solicitante=usuario_solicitante, 
-            status_ordem_servico='ABERTA', 
-            dt_abertura=timezone.now(), 
+            solicitante=request.user,
+            tipo_manutencao='CORRETIVA',
+            status_ordem_servico='ABERTA',
+            dt_abertura=timezone.now(),
             **validated_data
         )
 

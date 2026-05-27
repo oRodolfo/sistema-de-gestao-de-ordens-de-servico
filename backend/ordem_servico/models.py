@@ -10,7 +10,7 @@ class OrdemServico(models.Model):
     
     localizacao = models.ForeignKey(Localizacao, on_delete=models.DO_NOTHING, db_column='id_localizacao')
 
-    solicitante = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column='id_solicitante', related_name='ordens_abertas')
+    solicitante = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column='id_solicitante', related_name='ordens_abertas', null=True, blank=True)
 
     gestor = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column='id_gestor', related_name='ordens_gerenciadas', null=True, blank=True)
 

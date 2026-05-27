@@ -13,11 +13,11 @@ class AtivoListCreateView(generics.ListCreateAPIView):
     serializer_class = AtivoSerializer
 
     # O método get_permissions é sobrescrito para retornar diferentes conjuntos de permissões dependendo do método HTTP da requisição. Para requisições POST, que correspondem à criação de um novo ativo, são exigidas as permissões IsAuthenticated e IsGerenteOuGestorOuTecnico, garantindo que apenas usuários autenticados com os papéis de gerente, gestor ou técnico possam criar ativos. Para outros métodos, como GET, apenas a permissão IsAuthenticated é exigida, permitindo que qualquer usuário autenticado possa listar os ativos.
-    #def get_permissions(self):
-        #if self.request.method == 'POST':
-            #return [IsAuthenticated(), IsGerenteOuGestorOuTecnico()]
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAuthenticated(), IsGerenteOuGestorOuTecnico()]
 
-        #return [IsAuthenticated()]
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         queryset = Ativo.objects.all().order_by('id_ativo')
@@ -56,11 +56,11 @@ class AtivoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AtivoSerializer
 
     # O método get_permissions é sobrescrito para retornar diferentes conjuntos de permissões dependendo do método HTTP da requisição. Para requisições PATCH, PUT e DELETE, que correspondem à atualização e exclusão de um ativo, são exigidas as permissões IsAuthenticated e IsGerenteOuGestorOuTecnico, garantindo que apenas usuários autenticados com os papéis de gerente, gestor ou técnico possam atualizar ou excluir ativos. Para outros métodos, como GET, apenas a permissão IsAuthenticated é exigida, permitindo que qualquer usuário autenticado possa recuperar os detalhes de um ativo específico.
-    #def get_permissions(self):
-        #if self.request.method in ['PATCH', 'PUT', 'DELETE']:
-            #return [IsAuthenticated(), IsGerenteOuGestorOuTecnico()]
+    def get_permissions(self):
+        if self.request.method in ['PATCH', 'PUT', 'DELETE']:
+            return [IsAuthenticated(), IsGerenteOuGestorOuTecnico()]
 
-        #return [IsAuthenticated()]
+        return [IsAuthenticated()]
 
     # Sobrescreve o método retrieve para retornar uma resposta personalizada ao recuperar um ativo específico, utilizando a função resposta_sucesso para formatar a resposta de maneira consistente.
     def retrieve(self, request, *args, **kwargs):
@@ -71,12 +71,6 @@ class AtivoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
     # Sobrescreve o método update para permitir apenas a atualização da periodicidade da manutenção preventiva, garantindo que outras informações do ativo não sejam alteradas inadvertidamente. Ele verifica os campos recebidos na requisição e, se houver campos que não sejam permitidos, retorna uma resposta de erro. Caso contrário, ele procede com a atualização utilizando o serializer e retorna uma resposta de sucesso ou erro conforme o resultado da validação.
     def update(self, request, *args, **kwargs):
-        campos_permitidos = {"periodicidade_preventiva_dias"}
-        campos_recebidos = set(request.data.keys())
-
-        if not campos_recebidos.issubset(campos_permitidos):
-            return resposta_erro("Só é permitido editar a periodicidade da manutenção preventiva.", None, status.HTTP_403_FORBIDDEN)
-
         parcial = kwargs.pop("partial", False)
         ativo = self.get_object()
 
@@ -84,7 +78,6 @@ class AtivoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
         if serializer.is_valid():
             ativo = serializer.save()
-
             return resposta_sucesso("Ativo atualizado com sucesso.", AtivoSerializer(ativo).data)
 
         return resposta_erro("Erro ao atualizar ativo.", serializer.errors)

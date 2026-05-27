@@ -13,13 +13,15 @@ from utils.permissions import usuario_tem_grupo
 from utils.historico import registrar_historico
 from utils.permissions import IsGerenteOuGestorOuTecnico
 from django.db.models import Count, Q, Avg, F
+from ativo.services import calcular_proxima_preventiva, criar_ou_atualizar_os_preventiva_para_ativo
 
 class OrdemServicoListCreateView(generics.ListCreateAPIView):
     serializer_class = OrdemServicoSerializer
+
     # Remove IsAuthenticated fixo e define a regra por método
     def get_permissions(self):
         if self.request.method == 'POST':
-            return [AllowAny()]
+            return [IsAuthenticated(), IsGerenteOuGestorOuTecnico()]
         return [IsAuthenticated()]
 
     #permission_classes = (IsAuthenticated,)
@@ -71,7 +73,12 @@ class OrdemServicoListCreateView(generics.ListCreateAPIView):
 
 class OrdemServicoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = OrdemServicoSerializer
-    permission_classes = (IsAuthenticated,)
+    
+    def get_permissions(self):
+        if self.request.method in ['PATCH', 'PUT', 'DELETE']:
+            return [IsAuthenticated(), IsGerenteOuGestorOuTecnico()]
+
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         usuario = self.request.user
@@ -101,91 +108,6 @@ class OrdemServicoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
 
         dados = request.data.copy()
         novo_status = dados.get("status_ordem_servico")
-        campos_recebidos = set(dados.keys())
-
-        campos_basicos = {"descricao_servico", "localizacao", "prioridade_urgencia"}
-        usuario_eh_dono = ordem_servico.solicitante_id == usuario.id_usuario
-
-        if usuario_eh_dono:
-
-            if campos_recebidos.issubset(campos_basicos):
-
-                if ordem_servico.status_ordem_servico in ["EM_EXECUCAO", "CONCLUIDA"]:
-                    return resposta_erro("Não pode mais alterar dados após início da execução.", None)
-
-                serializer = self.get_serializer(ordem_servico, data=dados, partial=True)
-
-                if serializer.is_valid():
-                    ordem_servico = serializer.save()
-
-                    registrar_historico(ordem_servico, usuario, f"Dados updated por {usuario.nome}: {', '.join(campos_recebidos)}")
-
-                    return resposta_sucesso("Atualizado com sucesso", serializer.data)
-
-                return resposta_erro("Erro ao atualizar", serializer.errors)
-
-            if campos_recebidos == {"status_ordem_servico"}:
-
-                if ordem_servico.status_ordem_servico != "CONCLUIDA":
-                    return resposta_erro("Só pode validar após CONCLUIDA.", None)
-
-                if novo_status not in ["ENCERRADA", "REPROVADA"]:
-                    return resposta_erro("Status inválido para validação.", None)
-
-                status_anterior = ordem_servico.status_ordem_servico
-
-                serializer = self.get_serializer(ordem_servico, data=dados, partial=True)
-
-                if serializer.is_valid():
-                    if novo_status == "ENCERRADA":
-                        ordem_servico = serializer.save(dt_conclusao=timezone.now())
-                    else:
-                        ordem_servico = serializer.save()
-
-                    registrar_historico(ordem_servico, usuario, f"Validação do solicitante: {status_anterior} -> {novo_status}")
-
-                    return resposta_sucesso("Validação realizada", serializer.data)
-
-                return resposta_erro("Erro na validação", serializer.errors)
-
-            return resposta_erro("Operação não permitida.", None)
-
-        if usuario_tem_grupo(usuario, "TECNICO"):
-
-            if ordem_servico.tecnico_id != usuario.id_usuario:
-                return resposta_erro("Não é sua OS.", None)
-
-            if campos_recebidos != {"status_ordem_servico"}:
-                return resposta_erro("Técnico só altera status.", None)
-
-            status_permitidos = ["EM_EXECUCAO", "AGUARDANDO_MATERIAL", "AGUARDANDO_TERCEIRO", "CONCLUIDA"]
-
-            if novo_status not in status_permitidos:
-                return resposta_erro("Status inválido.", None)
-
-            if novo_status == "EM_EXECUCAO":
-                ocupado = OrdemServico.objects.filter(tecnico=usuario, status_ordem_servico="EM_EXECUCAO").exclude(id_ordem_servico=ordem_servico.id_ordem_servico).exists()
-
-                if ocupado:
-                    return resposta_erro("Já possui OS em execução.", None)
-
-        elif usuario_tem_grupo(usuario, "GESTOR"):
-
-            if ordem_servico.gestor_id != usuario.id_usuario:
-                return resposta_erro("Não é sua OS.", None)
-
-            if campos_recebidos != {"status_ordem_servico"}:
-                return resposta_erro("Gestor só altera status.", None)
-
-            if novo_status not in ["APROVADA", "REPROVADA"]:
-                return resposta_erro("Status inválido.", None)
-
-        elif usuario_tem_grupo(usuario, "GERENTE"):
-            pass
-
-        else:
-            return resposta_erro("Sem permissão.", None)
-
         status_anterior = ordem_servico.status_ordem_servico
 
         serializer = self.get_serializer(ordem_servico, data=dados, partial=parcial)
@@ -194,11 +116,49 @@ class OrdemServicoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
             ordem_servico = serializer.save()
 
             if novo_status and novo_status != status_anterior:
-                registrar_historico(ordem_servico, usuario, f"Status alterado: {status_anterior} -> {novo_status}")
+                registrar_historico(
+                    ordem_servico,
+                    usuario,
+                    f"Status alterado: {status_anterior} -> {novo_status}"
+                )
 
-            return resposta_sucesso("Atualizado com sucesso", serializer.data)
+            if (
+                ordem_servico.tipo_manutencao == "PREVENTIVA"
+                and novo_status in ["CONCLUIDA", "ENCERRADA"]
+                and ordem_servico.ativo
+            ):
+                ordem_servico.dt_conclusao = timezone.now()
+                ordem_servico.status_ordem_servico = "ENCERRADA"
+                ordem_servico.save()
 
-        return resposta_erro("Erro ao atualizar", serializer.errors)
+                ativo = ordem_servico.ativo
+                ativo.dt_ultima_preventiva = timezone.now().date()
+
+                if ativo.periodicidade_preventiva_dias:
+                    ativo.dt_proxima_preventiva = calcular_proxima_preventiva(
+                        ativo.dt_ultima_preventiva,
+                        ativo.periodicidade_preventiva_dias,
+                        ativo.localizacao,
+                        ativo
+                    )
+
+                ativo.save()
+                criar_ou_atualizar_os_preventiva_para_ativo(ativo)
+
+                registrar_historico(
+                    ordem_servico,
+                    usuario,
+                    f"Manutenção preventiva encerrada por {usuario.nome}. Próxima preventiva recalculada para {ativo.dt_proxima_preventiva}."
+                )
+
+                return resposta_sucesso(
+                    "Manutenção preventiva encerrada com sucesso. Próxima preventiva gerada automaticamente.",
+                    OrdemServicoSerializer(ordem_servico).data
+                )
+
+            return resposta_sucesso("Ordem de serviço atualizada com sucesso.", serializer.data)
+
+        return resposta_erro("Erro ao atualizar ordem de serviço.", serializer.errors)
 
 class OrdemServicoDestroyView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = OrdemServicoSerializer
@@ -208,20 +168,20 @@ class OrdemServicoDestroyView(generics.RetrieveUpdateDestroyAPIView):
         ordem_servico = self.get_object()
         usuario = request.user
 
-        if usuario_tem_grupo(usuario, "GERENTE") or ordem_servico.solicitante_id == usuario.id_usuario:
+        if ordem_servico.status_ordem_servico in ["ENCERRADA", "CANCELADA"]:
+            return resposta_erro("Esta ordem já está encerrada ou cancelada.", None)
 
-            if ordem_servico.status_ordem_servico != "ABERTA":
-                return resposta_erro("Só pode cancelar OS aberta.", None)
+        ordem_servico.status_ordem_servico = "CANCELADA"
+        ordem_servico.dt_conclusao = timezone.now()
+        ordem_servico.save()
 
-            ordem_servico.status_ordem_servico = "CANCELADA"
-            ordem_servico.dt_conclusao = timezone.now()
-            ordem_servico.save()
+        registrar_historico(
+            ordem_servico,
+            usuario,
+            f"OS cancelada por {usuario.nome}"
+        )
 
-            registrar_historico(ordem_servico, usuario, f"OS cancelada por {usuario.nome}")
-
-            return resposta_sucesso("Cancelada com sucesso", None)
-
-        return resposta_erro("Sem permissão.", None)
+        return resposta_sucesso("Ordem de serviço cancelada com sucesso.", None)
 
 class OrdemServicoAtribuirTecnicoView(APIView):
     permission_classes = (IsAuthenticated, IsGerenteOuGestorOuTecnico)
