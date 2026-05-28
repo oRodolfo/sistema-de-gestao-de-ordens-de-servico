@@ -108,17 +108,16 @@ const cards = computed(() => [
   { label: 'Concluídas', valor: dadosBrutos.value?.concluidas || 0, cor: 'text-green-600', descricao: 'finalizadas' },
 ])
 
-// Mapeamento das barras de status de forma isolada e segura contra undefined
 const ordensPorStatus = computed(() => {
-  const statusGeral = dadosBrutos.value?.statusDetalhados || {}
+  const statusDict = dadosBrutos.value?.statusDetalhados || {};
 
   return [
-    { status: 'ABERTA', label: 'Abertas', quantidade: statusGeral.ABERTA || 0, cor: 'bg-blue-400' },
-    { status: 'APROVADA', label: 'Aprovadas', quantidade: statusGeral.APROVADA || 0, cor: 'bg-green-400' },
-    { status: 'EM_EXECUCAO', label: 'Em Execução', quantidade: statusGeral.EM_EXECUCAO || 0, cor: 'bg-yellow-400' },
-    { status: 'AGUARDANDO_MATERIAL', label: 'Aguard. Material', quantidade: statusGeral.AGUARDANDO_MATERIAL || 0, cor: 'bg-orange-400' },
-    { status: 'CONCLUIDA', label: 'Concluídas', quantidade: (statusGeral.CONCLUIDA || 0) + (statusGeral.ENCERRADA || 0), cor: 'bg-teal-400' },
-    { status: 'CANCELADA', label: 'Canceladas', quantidade: statusGeral.CANCELADA || 0, cor: 'bg-red-400' },
+    { status: 'ABERTA', label: 'Abertas', quantidade: statusDict?.ABERTA || 0, cor: 'bg-blue-400' },
+    { status: 'APROVADA', label: 'Aprovadas', quantidade: statusDict?.APROVADA || 0, cor: 'bg-green-400' },
+    { status: 'EM_EXECUCAO', label: 'Em Execução', quantidade: statusDict?.EM_EXECUCAO || 0, cor: 'bg-yellow-400' },
+    { status: 'AGUARDANDO_MATERIAL', label: 'Aguard. Material', quantidade: statusDict?.AGUARDANDO_MATERIAL || 0, cor: 'bg-orange-400' },
+    { status: 'CONCLUIDA', label: 'Concluídas', quantidade: (statusDict?.CONCLUIDA || 0) + (statusDict?.ENCERRADA || 0), cor: 'bg-teal-400' },
+    { status: 'CANCELADA', label: 'Canceladas', quantidade: statusDict?.CANCELADA || 0, cor: 'bg-red-400' },
   ]
 })
 

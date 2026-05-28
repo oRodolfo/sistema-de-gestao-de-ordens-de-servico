@@ -21,7 +21,7 @@ class OrdemServicoListCreateView(generics.ListCreateAPIView):
     # Remove IsAuthenticated fixo e define a regra por método
     def get_permissions(self):
         if self.request.method == 'POST':
-            return [IsAuthenticated(), IsGerenteOuGestorOuTecnico()]
+            return [AllowAny(),]
         return [IsAuthenticated()]
 
     #permission_classes = (IsAuthenticated,)

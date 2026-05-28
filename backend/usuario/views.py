@@ -22,7 +22,7 @@ from django.conf import settings
 class UsuarioListCreateView(generics.ListCreateAPIView):
     # A view para listar e criar usuários, utilizando o serializer UsuarioSerializer 
     # aplicando as permissões de IsAuthenticated e IsGerente para garantir que apenas usuários autenticados e com a permissão de gerente possam acessar essa funcionalidade.
-    queryset = Usuario.objects.all()
+    queryset = Usuario.objects.exclude(nome__icontains='[DESATIVADO]').order_by('nome')
     serializer_class = UsuarioSerializer
     #permission_classes = (IsAuthenticated, IsGerente)
     
