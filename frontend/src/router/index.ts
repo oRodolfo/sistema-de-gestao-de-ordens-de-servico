@@ -35,6 +35,10 @@ const router = createRouter({
           path: 'ordens',
           component: () => import('@/views/OrdensView.vue'),
         },
+        {
+          path: 'ativos',
+          component: () => import('@/views/AtivosView.vue'), // <-- ADICIONADO
+        },
       ],
     },
     {
@@ -47,7 +51,11 @@ const router = createRouter({
         },
         {
           path: 'indicadores',
-          component: () => import('@/views/Indicadoresgestorview.vue'),
+          component: () => import('@/views/IndicadoresGestorView.vue'),
+        },
+        {
+          path: 'ativos',
+          component: () => import('@/views/AtivosView.vue'), 
         },
       ],
     },
@@ -59,7 +67,16 @@ const router = createRouter({
           path: 'ordens',
           component: () => import('@/views/OrdensTecnicoView.vue'),
         },
+        {
+          path: 'ativos',
+          component: () => import('@/views/AtivosView.vue'), 
+        },
       ],
+    },
+    {
+      path: '/perfil',
+      name: 'perfil',
+      component: () => import('@/views/PerfilView.vue'), 
     },
   ],
 })
