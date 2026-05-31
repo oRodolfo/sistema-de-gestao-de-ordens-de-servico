@@ -6,13 +6,15 @@
     </div>
 
     <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm flex flex-wrap items-center justify-between gap-4 mb-6">
-      <div class="flex items-center flex-wrap gap-4">
-        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Filtrar por</span>
+      <div class="flex items-center flex-wrap gap-3">
+        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mr-1">Filtrar por</span>
+        
         <select v-model="tipoAbaAtiva" class="bg-gray-50/80 border border-gray-200 text-gray-700 text-xs font-semibold rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer">
           <option value="TODAS">Todos os tipos</option>
           <option value="CORRETIVA">Corretivas</option>
           <option value="PREVENTIVA">Preventivas</option>
         </select>
+        
         <select v-model="filtroAtual" class="bg-gray-50/80 border border-gray-200 text-gray-700 text-xs font-semibold rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer">
           <option value="TODAS">Todos os status</option>
           <option value="ABERTA">Abertas</option>
@@ -21,15 +23,22 @@
           <option value="AGUARDANDO_MATERIAL">Aguard. Material</option>
           <option value="CONCLUIDA">Concluídas</option>
         </select>
+        
         <select v-model="filtroPrioridade" class="bg-gray-50/80 border border-gray-200 text-gray-700 text-xs font-semibold rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer">
           <option value="TODAS">Todas as prioridades</option>
-          <option value="ALTA">Urgente</option>
+          <option value="SIM">Urgente</option>
           <option value="NAO">Normal</option>
         </select>
+
+        <select v-model="filtroPredio" class="bg-gray-50/80 border border-gray-200 text-gray-700 text-xs font-semibold rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer max-w-[200px] truncate">
+          <option value="TODOS">Todos os Prédios</option>
+          <option v-for="predio in prediosUnicos" :key="predio" :value="predio">{{ predio }}</option>
+        </select>
       </div>
-      <div class="relative w-full md:w-80">
+      
+      <div class="relative w-full xl:w-72">
         <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 text-sm">🔍</span>
-        <input v-model="termoBusca" type="text" placeholder="Buscar por descrição ou local..." class="w-full bg-gray-50/80 border border-gray-200 text-gray-700 placeholder-gray-400 text-xs font-medium rounded-lg pl-9 pr-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
+        <input v-model="termoBusca" type="text" placeholder="Buscar por descrição ou local..." class="w-full bg-gray-50/80 border border-gray-200 text-gray-700 placeholder-gray-400 text-xs font-medium rounded-lg pl-9 pr-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-text" />
       </div>
     </div>
 
@@ -46,8 +55,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-if="loading" class="border-b border-gray-50"><td colspan="6" class="p-8 text-center text-gray-400">Carregando ordens...</td></tr>
-          <tr v-else-if="ordensFiltradas.length === 0" class="border-b border-gray-50"><td colspan="6" class="p-8 text-center text-gray-400">Nenhuma ordem encontrada.</td></tr>
+          <tr v-if="loading" class="border-b border-gray-50"><td colspan="6" class="p-8 text-center text-gray-400 font-medium">Carregando ordens...</td></tr>
+          <tr v-else-if="ordensFiltradas.length === 0" class="border-b border-gray-50"><td colspan="6" class="p-8 text-center text-gray-400 font-medium">Nenhuma ordem encontrada.</td></tr>
           <tr v-else v-for="os in ordensFiltradas" :key="os.id_ordem_servico" class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
             <td class="p-4">
               <div class="text-sm font-bold text-gray-800 mb-1">#{{ os.id_ordem_servico }}</div>
@@ -55,58 +64,102 @@
               <span v-else class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] uppercase font-bold tracking-wider">Corretiva</span>
             </td>
             <td class="p-4 text-sm text-gray-600 truncate max-w-[200px]">{{ os.predio_nome || 'N/I' }} - {{ os.localizacao_nome || 'N/I' }}</td>
-            <td class="p-4 text-sm text-gray-600 truncate max-w-[250px]">{{ os.descricao_servico }}</td>
+            
+            <td class="p-4 text-sm text-gray-600 truncate max-w-[250px]" :title="extrairProblema(os.descricao_servico)">
+              {{ extrairProblema(os.descricao_servico) }}
+            </td>
+            
             <td class="p-4 text-center"><span :class="getStatusClass(os.status_ordem_servico)" class="px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">{{ formatarStatus(os.status_ordem_servico) }}</span></td>
-            <td class="p-4 text-center"><span :class="os.prioridade_urgencia === 'ALTA' ? 'text-red-600 bg-red-100' : 'text-gray-600 bg-gray-100'" class="px-3 py-1 rounded-full text-xs font-bold">{{ os.prioridade_urgencia === 'ALTA' ? 'Urgente' : 'Normal' }}</span></td>
-            <td class="p-4 text-center"><button @click="abrirModalDetalhes(os)" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">Ver Detalhes</button></td>
+            <td class="p-4 text-center"><span :class="os.prioridade_urgencia === 'SIM' ? 'text-red-600 bg-red-100' : 'text-gray-600 bg-gray-100'" class="px-3 py-1 rounded-full text-xs font-bold">{{ os.prioridade_urgencia === 'SIM' ? 'Urgente' : 'Normal' }}</span></td>
+            <td class="p-4 text-center"><button @click="abrirModalDetalhes(os)" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 font-bold text-sm px-3 py-1.5 rounded-lg transition-colors cursor-pointer">Ver Detalhes</button></td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div v-if="modalAberto" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 animate-fade-in">
+    <div v-if="modalAberto" @click.self="fecharModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 animate-fade-in">
       <div class="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
         <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
           <div>
             <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ordem de Serviço</p>
             <h2 class="text-2xl font-bold text-gray-800 mt-1">#{{ osSelecionada?.id_ordem_servico }}</h2>
           </div>
-          <button @click="fecharModal" class="text-gray-400 hover:text-gray-700 p-2 rounded-full hover:bg-gray-200"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+          <button @click="fecharModal" class="text-gray-400 hover:text-gray-700 p-2 rounded-full hover:bg-gray-200 transition-colors cursor-pointer">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
         </div>
+        
         <div class="p-6 overflow-y-auto">
-          <div class="flex gap-3 mb-6">
-            <span :class="getStatusClass(osSelecionada?.status_ordem_servico)" class="px-3 py-1 rounded-full text-sm font-bold">{{ formatarStatus(osSelecionada?.status_ordem_servico) }}</span>
-            <span :class="osSelecionada?.prioridade_urgencia === 'ALTA' ? 'text-red-600 bg-red-100' : 'text-gray-600 bg-gray-100'" class="px-3 py-1 rounded-full text-sm font-bold">{{ osSelecionada?.prioridade_urgencia === 'ALTA' ? 'Prioridade: Urgente' : 'Prioridade: Normal' }}</span>
+          <div class="flex items-center gap-3 mb-6">
+            <span :class="getStatusClass(osSelecionada?.status_ordem_servico)" class="px-3 py-1.5 rounded-full text-sm font-bold">{{ formatarStatus(osSelecionada?.status_ordem_servico) }}</span>
+            
+            <div class="relative">
+              <select 
+                :value="osSelecionada?.prioridade_urgencia"
+                @change="alterarPrioridade($event.target.value)"
+                :class="[
+                  'pl-3 pr-8 py-1.5 rounded-full text-sm font-bold outline-none cursor-pointer appearance-none border transition-colors',
+                  osSelecionada?.prioridade_urgencia === 'SIM' ? 'text-red-700 bg-red-50 border-red-200 hover:bg-red-100' : 'text-gray-700 bg-gray-50 border-gray-200 hover:bg-gray-100'
+                ]"
+              >
+                <option value="NAO">Prioridade: Normal</option>
+                <option value="SIM">Prioridade: Urgente</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2" :class="osSelecionada?.prioridade_urgencia === 'SIM' ? 'text-red-500' : 'text-gray-500'">
+                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+              </div>
+            </div>
           </div>
+          
           <div class="grid grid-cols-2 gap-6 mb-6">
-            <div class="bg-gray-50 p-4 rounded-xl"><p class="text-xs font-semibold text-gray-500 mb-1">LOCAL</p><p class="text-sm font-bold text-gray-800">{{ osSelecionada?.predio_nome || 'N/I' }} - {{ osSelecionada?.localizacao_nome || 'N/I' }}</p></div>
-            <div class="bg-gray-50 p-4 rounded-xl"><p class="text-xs font-semibold text-gray-500 mb-1">DATA DE ABERTURA</p><p class="text-sm font-bold text-gray-800">{{ formatarData(osSelecionada?.dt_abertura) }}</p></div>
-            <div class="bg-gray-50 p-4 rounded-xl"><p class="text-xs font-semibold text-gray-500 mb-1">SOLICITANTE</p><p class="text-sm font-bold text-gray-800">{{ osSelecionada?.tipo_manutencao === 'PREVENTIVA' ? 'Sistema' : (osSelecionada?.solicitante_nome || 'Anônimo') }}</p></div>
-            <div class="bg-gray-50 p-4 rounded-xl border border-blue-100 bg-blue-50/30"><p class="text-xs font-semibold text-blue-600 mb-1">TÉCNICO ATRIBUÍDO</p><p class="text-sm font-bold text-gray-800">{{ osSelecionada?.tecnico_nome || 'Nenhum' }}</p></div>
+            <div class="bg-gray-50 p-4 rounded-xl">
+              <p class="text-xs font-semibold text-gray-500 mb-1">LOCAL</p>
+              <p class="text-sm font-bold text-gray-800">{{ osSelecionada?.predio_nome || 'N/I' }} - {{ osSelecionada?.localizacao_nome || 'N/I' }}</p>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-xl">
+              <p class="text-xs font-semibold text-gray-500 mb-1">DATA DE ABERTURA</p>
+              <p class="text-sm font-bold text-gray-800">{{ formatarData(osSelecionada?.dt_abertura) }}</p>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-xl">
+              <p class="text-xs font-semibold text-gray-500 mb-1">SOLICITANTE</p>
+              <p class="text-sm font-bold text-gray-800">{{ extrairSolicitante(osSelecionada) }}</p>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-xl border border-blue-100 bg-blue-50/30">
+              <p class="text-xs font-semibold text-blue-600 mb-1">TÉCNICO ATRIBUÍDO</p>
+              <p class="text-sm font-bold text-gray-800">{{ osSelecionada?.tecnico_nome || 'Não atribuído' }}</p>
+            </div>
           </div>
+          
           <div>
             <p class="text-xs font-semibold text-gray-500 mb-2">DESCRIÇÃO DO PROBLEMA</p>
-            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 text-sm text-gray-700 whitespace-pre-wrap">{{ osSelecionada?.descricao_servico }}</div>
+            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 text-sm text-gray-700 whitespace-pre-wrap">{{ extrairProblema(osSelecionada?.descricao_servico) }}</div>
           </div>
 
-          <div v-if="mostrandoAtribuicao" class="mt-6 p-4 border border-blue-200 bg-blue-50 rounded-xl">
-            <p class="text-sm font-bold text-blue-800 mb-3">Selecione o Técnico</p>
-            <select v-model="tecnicoSelecionado" class="w-full p-3 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+          <div v-if="mostrandoAtribuicao" class="mt-6 p-5 border border-blue-200 bg-blue-50 rounded-xl">
+            <p class="text-sm font-bold text-blue-800 mb-3">Selecione o Técnico para execução:</p>
+            <select v-model="tecnicoSelecionado" class="w-full p-3 border border-gray-300 rounded-lg text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
               <option value="" disabled>Escolha um técnico...</option>
               <option v-for="tec in tecnicosDisponiveis" :key="tec.id_usuario" :value="tec.id_usuario">{{ tec.nome }}</option>
             </select>
             <div class="flex justify-end gap-3 mt-4">
-              <button @click="mostrandoAtribuicao = false" class="px-4 py-2 text-sm text-gray-600 font-semibold">Cancelar</button>
-              <button @click="confirmarAtribuicao" :disabled="!tecnicoSelecionado" class="px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold shadow-md disabled:bg-blue-300">Confirmar</button>
+              <button @click="mostrandoAtribuicao = false" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-200 rounded-lg font-semibold transition-colors cursor-pointer">Cancelar</button>
+              <button @click="confirmarAtribuicao" :disabled="!tecnicoSelecionado" class="px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-bold shadow-md disabled:bg-blue-300 transition-colors cursor-pointer">Confirmar Atribuição</button>
             </div>
           </div>
         </div>
 
-        <div class="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50" v-if="!mostrandoAtribuicao">
-          <button @click="fecharModal" class="px-6 py-2.5 rounded-lg font-bold text-gray-600 hover:bg-gray-200">Fechar</button>
+        <div class="p-5 sm:p-6 border-t border-gray-100 flex flex-wrap justify-end gap-2 sm:gap-3 bg-gray-50" v-if="!mostrandoAtribuicao">
+          <button @click="fecharModal" class="px-4 sm:px-6 py-2.5 rounded-lg font-bold text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer w-full sm:w-auto">
+            Fechar
+          </button>
+          
           <template v-if="osSelecionada?.status_ordem_servico === 'ABERTA'">
-            <button @click="reprovarOS" class="px-6 py-2.5 rounded-lg font-bold text-red-600 border border-red-200 hover:bg-red-50">Reprovar</button>
-            <button @click="iniciarAtribuicao" class="px-6 py-2.5 rounded-lg font-bold text-white bg-green-600 hover:bg-green-700 shadow-md">Aprovar e Atribuir</button>
+            <button @click="reprovarOS" class="px-4 sm:px-6 py-2.5 rounded-lg font-bold text-red-600 border border-red-200 hover:bg-red-50 transition-colors cursor-pointer w-full sm:w-auto">
+              Reprovar Ordem
+            </button>
+            <button @click="iniciarAtribuicao" class="px-4 sm:px-6 py-2.5 rounded-lg font-bold text-white bg-green-600 hover:bg-green-700 shadow-md transition-all cursor-pointer w-full sm:w-auto">
+              Aprovar e Atribuir
+            </button>
           </template>
         </div>
       </div>
@@ -125,6 +178,7 @@ const loading = ref(true)
 const tipoAbaAtiva = ref('TODAS')
 const filtroAtual = ref('TODAS')
 const filtroPrioridade = ref('TODAS')
+const filtroPredio = ref('TODOS')
 const termoBusca = ref('')
 
 const modalAberto = ref(false)
@@ -133,23 +187,54 @@ const mostrandoAtribuicao = ref(false)
 const tecnicosDisponiveis = ref<any[]>([])
 const tecnicoSelecionado = ref<string>('')
 
+const prediosUnicos = computed(() => {
+  const nomes = new Set(ordens.value.map(os => os.predio_nome).filter(Boolean))
+  return Array.from(nomes).sort()
+})
+
+const extrairSolicitante = (os: any) => {
+  if (!os) return ''
+  if (os.tipo_manutencao === 'PREVENTIVA') return 'Sistema (Automático)'
+  const match = os.descricao_servico?.match(/\[(.*?)\]/);
+  if (match) return match[1]; 
+  return os.solicitante_nome || 'Usuário Anônimo / Totem';
+}
+
+const extrairProblema = (descricao: string) => {
+  if (!descricao) return 'Sem descrição detalhada.'
+  return descricao.replace(/\[.*?\]\s*(-\s*Local:.*?\s*)?-\s*(Problema:\s*)?/, '').trim();
+}
+
+const authHeader = () => {
+  const token = localStorage.getItem('token')
+  return { headers: { Authorization: `Bearer ${token}` } }
+}
+
 const ordensFiltradas = computed(() => {
   let resultado = ordens.value
   if (tipoAbaAtiva.value !== 'TODAS') resultado = resultado.filter(os => os.tipo_manutencao === tipoAbaAtiva.value)
   if (filtroAtual.value !== 'TODAS') resultado = resultado.filter(os => os.status_ordem_servico === filtroAtual.value)
   if (filtroPrioridade.value !== 'TODAS') resultado = resultado.filter(os => os.prioridade_urgencia === filtroPrioridade.value)
+  if (filtroPredio.value !== 'TODOS') resultado = resultado.filter(os => os.predio_nome === filtroPredio.value)
+  
   if (termoBusca.value.trim() !== '') {
     const termo = termoBusca.value.toLowerCase()
-    resultado = resultado.filter(os => os.descricao_servico?.toLowerCase().includes(termo) || os.localizacao_nome?.toLowerCase().includes(termo) || os.predio_nome?.toLowerCase().includes(termo))
+    resultado = resultado.filter(os => 
+      os.descricao_servico?.toLowerCase().includes(termo) || 
+      os.localizacao_nome?.toLowerCase().includes(termo) || 
+      os.predio_nome?.toLowerCase().includes(termo)
+    )
   }
   return resultado
 })
 
 const formatarData = (dataIso: string) => dataIso ? new Date(dataIso).toLocaleDateString('pt-BR') : 'N/I'
+
 const formatarStatus = (status: string) => {
   const mapa: Record<string, string> = { 'ABERTA': 'Aberta', 'APROVADA': 'Aprovada', 'EM_EXECUCAO': 'Em Execução', 'AGUARDANDO_MATERIAL': 'Aguard. Material', 'AGUARDANDO_TERCEIRO': 'Aguard. Terceiro', 'CONCLUIDA': 'Concluída', 'REPROVADA': 'Reprovada', 'CANCELADA': 'Cancelada', 'ENCERRADA': 'Encerrada' }
   return mapa[status] || status
 }
+
 const getStatusClass = (status: string) => {
   const mapa: Record<string, string> = { 'ABERTA': 'bg-blue-100 text-blue-700', 'APROVADA': 'bg-emerald-100 text-emerald-700', 'EM_EXECUCAO': 'bg-yellow-100 text-yellow-700', 'AGUARDANDO_MATERIAL': 'bg-orange-100 text-orange-700', 'CONCLUIDA': 'bg-teal-100 text-teal-700', 'REPROVADA': 'bg-red-100 text-red-700', 'CANCELADA': 'bg-red-100 text-red-700' }
   return mapa[status] || 'bg-gray-100 text-gray-700'
@@ -158,38 +243,75 @@ const getStatusClass = (status: string) => {
 async function carregarOrdens() {
   loading.value = true
   try {
-    const token = localStorage.getItem('token')
-    const response = await api.get('/ordem-servico/', { headers: { Authorization: `Bearer ${token}` } })
+    const response = await api.get('/ordem-servico/', authHeader())
     ordens.value = response.data.dados || response.data
-  } catch (error) { console.error(error) } finally { loading.value = false }
+  } catch (error) { 
+    console.error(error) 
+  } finally { 
+    loading.value = false 
+  }
 }
 
 async function carregarTecnicos() {
   try {
-    const token = localStorage.getItem('token')
-    const response = await api.get('/usuario/', { headers: { Authorization: `Bearer ${token}` } })
-    tecnicosDisponiveis.value = (response.data.dados || response.data).filter((u: any) => u.cargo === 'TECNICO')
-  } catch (error) { console.error(error) }
+    const response = await api.get('/usuario/', authHeader())
+    const listaUsuarios = response.data.dados || response.data
+    tecnicosDisponiveis.value = listaUsuarios.filter((u: any) => 
+      u.grupo_descricao === 'TECNICO' || 
+      u.cargo === 'TECNICO'
+    )
+  } catch (error) { console.error("Erro ao carregar técnicos:", error) }
 }
 
-function abrirModalDetalhes(os: any) { osSelecionada.value = os; mostrandoAtribuicao.value = false; tecnicoSelecionado.value = ''; modalAberto.value = true }
-function fecharModal() { modalAberto.value = false; osSelecionada.value = null }
-function iniciarAtribuicao() { if (tecnicosDisponiveis.value.length === 0) carregarTecnicos(); mostrandoAtribuicao.value = true }
+function abrirModalDetalhes(os: any) { 
+  osSelecionada.value = os
+  mostrandoAtribuicao.value = false
+  tecnicoSelecionado.value = ''
+  modalAberto.value = true 
+}
+
+function fecharModal() { 
+  modalAberto.value = false
+  osSelecionada.value = null 
+}
+
+function iniciarAtribuicao() { 
+  if (tecnicosDisponiveis.value.length === 0) carregarTecnicos()
+  mostrandoAtribuicao.value = true 
+}
+
+async function alterarPrioridade(novaPrioridade: string) {
+  try {
+    await api.patch(`/ordem-servico/${osSelecionada.value.id_ordem_servico}/`, { prioridade_urgencia: novaPrioridade }, authHeader())
+    osSelecionada.value.prioridade_urgencia = novaPrioridade
+    
+    const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true })
+    Toast.fire({ icon: 'success', title: 'Prioridade alterada com sucesso!' })
+    
+    carregarOrdens()
+  } catch (error) {
+    Swal.fire({ title: 'Erro', text: 'Não foi possível alterar a prioridade.', icon: 'error' })
+  }
+}
 
 async function reprovarOS() {
-  const result = await Swal.fire({ title: 'Reprovar Ordem?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Reprovar' })
+  const result = await Swal.fire({ title: 'Reprovar Ordem?', text: "Esta ação devolverá o status da ordem como reprovada.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#6b7280', confirmButtonText: 'Sim, Reprovar', cancelButtonText: 'Cancelar', customClass: { confirmButton: 'cursor-pointer', cancelButton: 'cursor-pointer' } })
   if (!result.isConfirmed) return
   try {
-    await api.patch(`/ordem-servico/${osSelecionada.value.id_ordem_servico}/`, { status_ordem_servico: 'REPROVADA' }, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
-    Swal.fire('Reprovada!', 'A ordem foi reprovada.', 'success'); fecharModal(); carregarOrdens()
-  } catch (error) { Swal.fire('Erro', 'Falha ao reprovar.', 'error') }
+    await api.patch(`/ordem-servico/${osSelecionada.value.id_ordem_servico}/`, { status_ordem_servico: 'REPROVADA' }, authHeader())
+    Swal.fire({ title: 'Reprovada!', text: 'A ordem foi reprovada com sucesso.', icon: 'success', customClass: { confirmButton: 'cursor-pointer' }})
+    fecharModal()
+    carregarOrdens()
+  } catch (error) { Swal.fire({ title: 'Erro', text: 'Falha ao reprovar a ordem.', icon: 'error' }) }
 }
 
 async function confirmarAtribuicao() {
   try {
-    await api.patch(`/ordem-servico/${osSelecionada.value.id_ordem_servico}/atribuir-tecnico/`, { tecnico: tecnicoSelecionado.value }, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
-    Swal.fire('Atribuída!', 'Técnico definido com sucesso.', 'success'); fecharModal(); carregarOrdens()
-  } catch (error) { Swal.fire('Erro', 'Falha ao atribuir.', 'error') }
+    await api.patch(`/ordem-servico/${osSelecionada.value.id_ordem_servico}/atribuir-tecnico/`, { tecnico: tecnicoSelecionado.value }, authHeader())
+    Swal.fire({ title: 'Aprovada & Atribuída!', text: 'Técnico definido com sucesso.', icon: 'success', confirmButtonColor: '#2563eb', customClass: { confirmButton: 'cursor-pointer' }})
+    fecharModal()
+    carregarOrdens()
+  } catch (error) { Swal.fire({ title: 'Erro', text: 'Falha ao atribuir técnico.', icon: 'error' }) }
 }
 
 onMounted(() => carregarOrdens())

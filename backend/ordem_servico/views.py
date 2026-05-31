@@ -87,7 +87,8 @@ class OrdemServicoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
             return OrdemServico.objects.all()
 
         if usuario_tem_grupo(usuario, "GESTOR"):
-            return OrdemServico.objects.filter(gestor=usuario)
+            from django.db.models import Q
+            return OrdemServico.objects.filter(Q(gestor=usuario) | Q(status_ordem_servico='ABERTA'))
 
         if usuario_tem_grupo(usuario, "TECNICO"):
             return OrdemServico.objects.filter(tecnico=usuario)
@@ -115,6 +116,10 @@ class OrdemServicoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
         if serializer.is_valid():
             ordem_servico = serializer.save()
 
+            if novo_status in ["CONCLUIDA", "ENCERRADA"] and not getattr(ordem_servico, 'dt_conclusao', None):
+                ordem_servico.dt_conclusao = timezone.now()
+                ordem_servico.save()       
+            
             if novo_status and novo_status != status_anterior:
                 registrar_historico(
                     ordem_servico,
@@ -230,7 +235,7 @@ class DashboardIndicadoresView(APIView):
         if usuario_tem_grupo(usuario, "GERENTE"):
             base_query = OrdemServico.objects.all()
         else: # Considera como Gestor
-            base_query = OrdemServico.objects.filter(Q(gestor=usuario) | Q(status_ordem_servico='ABERTA'))
+            base_query = OrdemServico.objects.filter(Q(gestor=usuario) | Q(status_ordem_servico='ABERTA') | Q(status_ordem_servico='REPROVADA'))
 
         # 2. Contagem Geral e Agrupamento por Status usando a base filtrada
         total_ordens = base_query.count()
@@ -266,34 +271,23 @@ class DashboardIndicadoresView(APIView):
             except Exception as e:
                 print(f"Erro ao calcular tempo médio: {e}")
 
-        # 4. Ranking de Técnicos (Protegido contra falha de related_name)
+        # 4. Ranking de Técnicos (Corrigido para ordenar por MAIOR NÚMERO DE CONCLUÍDAS)
         tecnicos_data = []
         try:
-            # Tenta buscar usando ordens_atribuidas que é o related_name definido no seu Usuario model
-            ranking_tecnicos = (
-                Usuario.objects.filter(cargo="TECNICO")
-                .annotate(
-                    total_os=Count('ordens_atribuidas'),
-                    concluidas_os=Count('ordens_atribuidas', filter=Q(ordens_atribuidas__status_ordem_servico__in=['CONCLUIDA', 'ENCERRADA']))
-                )
-                .order_by('-total_os')[:4]
-            )
-            tecnicos_data = [
-                {
-                    'nome': t.nome,
-                    'concluidas': t.concluidas_os,
-                    'total': t.total_os
-                } for t in ranking_tecnicos if t.total_os > 0
-            ]
+            ranking_tecnicos = Usuario.objects.annotate(
+                total_os=Count('ordens_atribuidas'),
+                concluidas_os=Count('ordens_atribuidas', filter=Q(ordens_atribuidas__status_ordem_servico__in=['CONCLUIDA', 'ENCERRADA']))
+            ).filter(total_os__gt=0).order_by('-concluidas_os', '-total_os')[:4] # <--- A MÁGICA ESTÁ AQUI
+            
+            tecnicos_data = [{'nome': t.nome, 'concluidas': t.concluidas_os, 'total': t.total_os} for t in ranking_tecnicos]
         except Exception as e:
-            print(f"Erro no ranking de técnicos (tentando fallback): {e}")
-            # Fallback seguro caso o name do relacionamento mude
             try:
-                ranking_fallback = Usuario.objects.filter(cargo="TECNICO").annotate(
+                # Fallback caso o related_name seja o padrão do Django (ordemservico)
+                ranking_fallback = Usuario.objects.annotate(
                     total_os=Count('ordemservico'),
                     concluidas_os=Count('ordemservico', filter=Q(ordemservico__status_ordem_servico__in=['CONCLUIDA', 'ENCERRADA']))
-                ).order_by('-total_os')[:4]
-                tecnicos_data = [{'nome': t.nome, 'concluidas': t.concluidas_os, 'total': t.total_os} for t in ranking_fallback if t.total_os > 0]
+                ).filter(total_os__gt=0).order_by('-concluidas_os', '-total_os')[:4] # <--- E AQUI TAMBÉM
+                tecnicos_data = [{'nome': t.nome, 'concluidas': t.concluidas_os, 'total': t.total_os} for t in ranking_fallback]
             except:
                 pass
 
@@ -320,6 +314,7 @@ class DashboardIndicadoresView(APIView):
             'abertas': contagens['ABERTA'],
             'emExecucao': contagens['EM_EXECUCAO'],
             'concluidas': contagens['CONCLUIDA'] + contagens['ENCERRADA'],
+            'tempo_medio': tempo_medio, # <--- ADICIONADO AQUI
             'statusDetalhados': contagens,
             'rankingTecnicos': tecnicos_data,
             'pendencias': {
